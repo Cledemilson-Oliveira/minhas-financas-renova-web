@@ -3,50 +3,23 @@ import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js';
 
 const supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const $=(s,r=document)=>r.querySelector(s);
-let user=null,access=null,subscription=null,busy=false;
+let user=null,access=null,entitlement=null,busy=false;
 
-function ensureStyles(){if(document.querySelector('link[data-ai-module]'))return;const l=document.createElement('link');l.rel='stylesheet';l.href='./css/ai-module.css?v=20260913-0061';l.dataset.aiModule='1';document.head.appendChild(l)}
+function ensureStyles(){if(document.querySelector('link[data-ai-module]'))return;const l=document.createElement('link');l.rel='stylesheet';l.href='./css/ai-module.css?v=20260913-0080';l.dataset.aiModule='1';document.head.appendChild(l)}
 function esc(v=''){return String(v).replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function isOwner(){return access?.role==='dono'&&access?.status==='ativo'}
-function hasAccess(){return isOwner()||subscription?.status==='active'}
-function accessLabel(){if(isOwner())return'Conta dono • acesso global';if(subscription?.status==='active')return'Plano IA ativo';if(subscription?.status==='pending')return'Assinatura pendente';return'Acesso bloqueado'}
+function features(){return entitlement?.features||{}}
+function hasChatAccess(){return isOwner()||features().all===true||features().ai_chat===true}
+function hasLocalAccess(){return isOwner()||features().all===true||features().ai_local===true}
+function accessLabel(){if(isOwner())return'Conta dono • acesso global';if(entitlement?.mode==='trial')return'Teste RENOVA';if(entitlement?.mode==='limited')return'Acesso limitado';return entitlement?.plan_name||'Verificando acesso'}
 function goSubscription(){document.querySelector('[data-page="subscription"]')?.click()}
-function goAI(){document.querySelector('[data-page="ai"]')?.click()}
 
-function ensureUI(){const page=$('#aiPage');if(!page)return;page.innerHTML=`<div class="ai-shell"><div class="ai-head"><div class="ai-brand"><div class="ai-orb">✦</div><div><h2>IA Financeira RENOVA</h2><p>Análise inteligente conectada aos seus dados financeiros.</p></div></div><span id="aiAccessBadge" class="ai-access-badge locked">Verificando acesso...</span></div><div id="aiBody" class="ai-body"></div><div id="aiComposer" class="ai-composer hidden"><div class="ai-composer-inner"><textarea id="aiInput" class="ai-input" rows="1" placeholder="Pergunte sobre seus gastos, orçamento, contas, cartões ou metas..."></textarea><button id="aiSend" class="ai-send" type="button" aria-label="Enviar">➤</button></div><div class="ai-note">A IA analisa seus dados do RENOVA. Confirme informações importantes antes de tomar decisões financeiras.</div></div></div>`}
+function ensureUI(){const page=$('#aiPage');if(!page)return;page.innerHTML=`<div class="ai-shell"><div class="ai-head"><div class="ai-brand"><div class="ai-orb">✦</div><div><h2>IA Financeira RENOVA</h2><p>Análise inteligente conectada aos seus dados financeiros.</p></div></div><span id="aiAccessBadge" class="ai-access-badge locked">Verificando acesso...</span></div><div id="aiBody" class="ai-body"></div><div id="aiComposer" class="ai-composer hidden"><div class="ai-composer-inner"><textarea id="aiInput" class="ai-input" rows="1" placeholder="Pergunte sobre seus gastos, orçamento, contas, cartões ou metas..."></textarea><button id="aiSend" class="ai-send" type="button" aria-label="Enviar">➤</button></div><div class="ai-note">O Chat IA usa um provedor configurado. O Modo Análise Local funciona sem consumir créditos de IA generativa.</div></div></div>`}
 
-function syncAccessUI(){
-  const roleEl=$('#sidebarUserRole');
-  if(roleEl){
-    roleEl.textContent=isOwner()?'Conta dono':subscription?.status==='active'?'Plano IA ativo':subscription?.status==='pending'?'Assinatura pendente':'Plano gratuito';
-  }
+function syncAccessUI(){const roleEl=$('#sidebarUserRole');if(!roleEl)return;roleEl.textContent=isOwner()?'Conta dono':entitlement?.mode==='trial'?'Teste 14 dias':entitlement?.plan_name||'Acesso limitado'}
 
-  const page=$('#subscriptionPage');
-  if(!page)return;
-
-  if(isOwner()){
-    page.innerHTML=`<div class="placeholder-panel glow"><span>★</span><h2>Conta dono • acesso global</h2><p>Sua conta possui acesso administrativo global ao Minhas Finanças RENOVA e à IA Financeira, independentemente do status de assinatura.</p><div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px"><button id="ownerOpenAI" class="primary-btn" type="button">Abrir IA Financeira</button></div></div>`;
-    $('#ownerOpenAI')?.addEventListener('click',goAI);
-    return;
-  }
-
-  if(subscription?.status==='active'){
-    const end=subscription?.current_period_end?new Intl.DateTimeFormat('pt-BR').format(new Date(subscription.current_period_end)):null;
-    page.innerHTML=`<div class="placeholder-panel glow"><span>★</span><h2>IA Financeira ativa</h2><p>Seu plano ${esc(subscription?.plan_code||'RENOVA IA')} está ativo${end?` até ${esc(end)}`:''}.</p><button id="subscriberOpenAI" class="primary-btn" type="button">Abrir IA Financeira</button></div>`;
-    $('#subscriberOpenAI')?.addEventListener('click',goAI);
-    return;
-  }
-
-  if(subscription?.status==='pending'){
-    page.innerHTML=`<div class="placeholder-panel"><span>★</span><h2>Assinatura aguardando ativação</h2><p>Existe uma assinatura da IA Financeira com status pendente. Assim que o pagamento for confirmado, o acesso será liberado automaticamente.</p></div>`;
-    return;
-  }
-
-  page.innerHTML=`<div class="placeholder-panel"><span>★</span><h2>Assinatura</h2><p>Você está no plano gratuito. A IA Financeira é liberada para assinaturas ativas.</p></div>`;
-}
-
-function renderGate(){const body=$('#aiBody'),composer=$('#aiComposer'),badge=$('#aiAccessBadge');if(!body)return;const allowed=hasAccess();badge.textContent=accessLabel();badge.classList.toggle('locked',!allowed);composer.classList.toggle('hidden',!allowed);if(!allowed){body.innerHTML=`<div class="ai-gate"><div class="ai-gate-card"><div class="ai-orb">✦</div><h3>Desbloqueie a IA Financeira</h3><p>Seu acesso gratuito continua funcionando normalmente. A IA Financeira é liberada para assinaturas ativas, enquanto a conta dono possui acesso global.</p><div class="ai-gate-actions"><button class="primary-btn" id="aiViewSubscription" type="button">Ver assinatura</button></div></div></div>`;$('#aiViewSubscription')?.addEventListener('click',goSubscription);return}renderWelcome()}
-function renderWelcome(){const body=$('#aiBody');if(!body)return;body.innerHTML=`<div class="ai-welcome"><div class="ai-orb">✦</div><h3>Como posso ajudar com suas finanças?</h3><p>Eu consigo analisar seus lançamentos, contas, cartões, orçamento e metas usando os dados atuais do Minhas Finanças RENOVA.</p></div><div class="ai-prompts"><button class="ai-prompt" type="button">Como está minha situação financeira este mês?</button><button class="ai-prompt" type="button">Onde estou gastando mais?</button><button class="ai-prompt" type="button">Como posso organizar melhor meu orçamento?</button><button class="ai-prompt" type="button">Qual meta financeira devo priorizar?</button></div><div id="aiMessages" class="ai-messages"></div>`;document.querySelectorAll('.ai-prompt').forEach(b=>b.addEventListener('click',()=>sendText(b.textContent.trim())))}
+function renderGate(){const body=$('#aiBody'),composer=$('#aiComposer'),badge=$('#aiAccessBadge');if(!body)return;const chatAllowed=hasChatAccess();badge.textContent=accessLabel();badge.classList.toggle('locked',!chatAllowed&&!hasLocalAccess());composer.classList.toggle('hidden',!chatAllowed);if(!chatAllowed){const local=hasLocalAccess();body.innerHTML=`<div class="ai-gate"><div class="ai-gate-card"><div class="ai-orb">✦</div><h3>${local?'Modo Análise Local disponível':'Recursos de IA não disponíveis neste acesso'}</h3><p>${local?'Seu plano inclui o Motor de Análise RENOVA sem consumo de créditos. Use a aba “Análise Local” acima. O Chat IA generativo depende de um plano/provedor compatível.':'O plano Essencial mantém toda a gestão financeira, mas não inclui Modo Análise, Chat IA ou Central de Treinamento.'}</p><div class="ai-gate-actions"><button class="primary-btn" id="aiViewSubscription" type="button">Ver planos</button></div></div></div>`;$('#aiViewSubscription')?.addEventListener('click',goSubscription);return}renderWelcome()}
+function renderWelcome(){const body=$('#aiBody');if(!body)return;body.innerHTML=`<div class="ai-welcome"><div class="ai-orb">✦</div><h3>Como posso ajudar com suas finanças?</h3><p>O Chat IA pode analisar lançamentos, contas, cartões, orçamento e metas quando um provedor de IA estiver configurado para o ambiente.</p></div><div class="ai-prompts"><button class="ai-prompt" type="button">Como está minha situação financeira este mês?</button><button class="ai-prompt" type="button">Onde estou gastando mais?</button><button class="ai-prompt" type="button">Como posso organizar melhor meu orçamento?</button><button class="ai-prompt" type="button">Qual meta financeira devo priorizar?</button></div><div id="aiMessages" class="ai-messages"></div>`;document.querySelectorAll('.ai-prompt').forEach(b=>b.addEventListener('click',()=>sendText(b.textContent.trim())))}
 function messagesHost(){return $('#aiMessages')}
 function addMessage(role,text){const host=messagesHost();if(!host)return;const row=document.createElement('div');row.className=`ai-message ${role}`;row.innerHTML=`<div class="ai-bubble">${esc(text)}</div>`;host.appendChild(row);scrollBottom();return row}
 function addThinking(){const host=messagesHost();if(!host)return null;const row=document.createElement('div');row.className='ai-message assistant';row.innerHTML='<div class="ai-bubble"><span class="ai-thinking"><i></i><i></i><i></i></span></div>';host.appendChild(row);scrollBottom();return row}
@@ -54,12 +27,13 @@ function scrollBottom(){const body=$('#aiBody');if(body)requestAnimationFrame(()
 function setBusy(v){busy=v;const btn=$('#aiSend'),input=$('#aiInput');if(btn)btn.disabled=v;if(input)input.disabled=v}
 async function errorMessage(error){try{if(error?.context?.json){const p=await error.context.json();if(p?.error)return p.error}}catch{}return error?.message||'Não foi possível falar com a IA agora.'}
 
-async function sendText(raw){const text=String(raw||'').trim();if(!text||busy||!hasAccess())return;const input=$('#aiInput');if(input){input.value='';input.style.height='auto'}addMessage('user',text);const thinking=addThinking();setBusy(true);try{const {data,error}=await supabase.functions.invoke('finance-ai',{body:{message:text}});thinking?.remove();if(error){addMessage('system',await errorMessage(error));return}if(data?.error){addMessage('system',data.error);return}addMessage('assistant',data?.answer||'Não consegui gerar uma resposta agora.')}catch(e){thinking?.remove();addMessage('system',e?.message||'Erro ao consultar a IA.')}finally{setBusy(false);input?.focus()}}
+async function sendText(raw){const text=String(raw||'').trim();if(!text||busy||!hasChatAccess())return;const input=$('#aiInput');if(input){input.value='';input.style.height='auto'}addMessage('user',text);const thinking=addThinking();setBusy(true);try{const {data,error}=await supabase.functions.invoke('finance-ai',{body:{message:text}});thinking?.remove();if(error){addMessage('system',await errorMessage(error));return}if(data?.error){addMessage('system',data.error);return}addMessage('assistant',data?.answer||'Não consegui gerar uma resposta agora.')}catch(e){thinking?.remove();addMessage('system',e?.message||'Erro ao consultar a IA.')}finally{setBusy(false);input?.focus()}}
 
-async function loadAccess(){if(!user)return;const [{data:a},{data:s}]=await Promise.all([supabase.from('user_access').select('role,status').eq('user_id',user.id).maybeSingle(),supabase.from('ai_subscriptions').select('plan_code,status,current_period_end').eq('user_id',user.id).order('created_at',{ascending:false}).limit(1).maybeSingle()]);access=a;subscription=s;syncAccessUI();renderGate()}
+async function loadAccess(){if(!user)return;const [{data:a},{data:e}]=await Promise.all([supabase.from('user_access').select('role,status').eq('user_id',user.id).maybeSingle(),supabase.rpc('get_my_plan_access')]);access=a;entitlement=e||null;syncAccessUI();renderGate();window.dispatchEvent(new CustomEvent('renova:entitlement',{detail:entitlement}))}
 function bind(){const input=$('#aiInput'),send=$('#aiSend');send?.addEventListener('click',()=>sendText(input?.value));input?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendText(input.value)}});input?.addEventListener('input',()=>{input.style.height='auto';input.style.height=`${Math.min(120,input.scrollHeight)}px`})}
 
-ensureStyles();ensureUI();bind();const {data:{session}}=await supabase.auth.getSession();user=session?.user||null;if(user)await loadAccess();supabase.auth.onAuthStateChange((_e,s)=>{user=s?.user||null;access=null;subscription=null;if(user)setTimeout(loadAccess,0);else{syncAccessUI();renderGate()}});
+ensureStyles();ensureUI();bind();const {data:{session}}=await supabase.auth.getSession();user=session?.user||null;if(user)await loadAccess();supabase.auth.onAuthStateChange((_e,s)=>{user=s?.user||null;access=null;entitlement=null;if(user)setTimeout(loadAccess,0);else{syncAccessUI();renderGate()}});
 
-// Ferramentas exclusivas da conta dona: análise local sem créditos e central de treinamento.
-import('./ai-owner-tools.js?v=20260913-0070').catch(error=>console.error('Falha ao carregar ferramentas da conta dona',error));
+// Planos/assinaturas e ferramentas de análise são módulos separados para evitar acoplamento com o núcleo financeiro.
+import('./plans-module.js?v=20260913-0080').catch(error=>console.error('Falha ao carregar planos e assinaturas',error));
+import('./ai-owner-tools.js?v=20260913-0080').catch(error=>console.error('Falha ao carregar ferramentas de análise RENOVA',error));

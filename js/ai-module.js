@@ -5,7 +5,7 @@ const supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persist
 const $=(s,r=document)=>r.querySelector(s);
 let user=null,access=null,entitlement=null,busy=false;
 
-function ensureStyles(){if(document.querySelector('link[data-ai-module]'))return;const l=document.createElement('link');l.rel='stylesheet';l.href='./css/ai-module.css?v=20260913-0080';l.dataset.aiModule='1';document.head.appendChild(l)}
+function ensureStyles(){if(document.querySelector('link[data-ai-module]'))return;const l=document.createElement('link');l.rel='stylesheet';l.href='./css/ai-module.css?v=20260913-0081';l.dataset.aiModule='1';document.head.appendChild(l)}
 function esc(v=''){return String(v).replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function isOwner(){return access?.role==='dono'&&access?.status==='ativo'}
 function features(){return entitlement?.features||{}}
@@ -34,7 +34,9 @@ function bind(){const input=$('#aiInput'),send=$('#aiSend');send?.addEventListen
 
 ensureStyles();ensureUI();bind();const {data:{session}}=await supabase.auth.getSession();user=session?.user||null;if(user)await loadAccess();supabase.auth.onAuthStateChange((_e,s)=>{user=s?.user||null;access=null;entitlement=null;if(user)setTimeout(loadAccess,0);else{syncAccessUI();renderGate()}});
 
-// Planos/assinaturas, acesso e ferramentas de análise são módulos separados para evitar acoplamento com o núcleo financeiro.
-import('./access-control.js?v=20260913-0080').catch(error=>console.error('Falha ao carregar controle de acesso',error));
-import('./plans-module.js?v=20260913-0080').catch(error=>console.error('Falha ao carregar planos e assinaturas',error));
-import('./ai-owner-tools.js?v=20260913-0080').catch(error=>console.error('Falha ao carregar ferramentas de análise RENOVA',error));
+// Módulos complementares isolados do núcleo financeiro.
+import('./access-control.js?v=20260913-0081').catch(error=>console.error('Falha ao carregar controle de acesso',error));
+import('./plans-module.js?v=20260913-0081').catch(error=>console.error('Falha ao carregar planos e assinaturas',error));
+import('./checkout-module.js?v=20260913-0081').catch(error=>console.error('Falha ao carregar Checkout Transparente',error));
+import('./plans-admin-recovery.js?v=20260913-0081').catch(error=>console.error('Falha ao carregar recuperação de planos',error));
+import('./ai-owner-tools.js?v=20260913-0081').catch(error=>console.error('Falha ao carregar ferramentas de análise RENOVA',error));

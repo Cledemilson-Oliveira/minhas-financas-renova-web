@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <title>Resumo Financeiro RENOVA</title>
+  <style>
+    :root{--bg:#07101d;--surface:#0e1a2d;--surface2:#101f35;--border:rgba(148,163,184,.16);--text:#f8fafc;--muted:#94a3b8;--cyan:#27e0d2;--blue:#3b82f6;--green:#36d399;--red:#fb7185;--shadow:0 18px 60px rgba(0,0,0,.24)}
+    *{box-sizing:border-box}html,body{margin:0;background:transparent;color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    body{padding:8px}.wrap{width:100%;border:1px solid var(--border);border-radius:22px;background:linear-gradient(135deg,rgba(14,26,45,.98),rgba(7,16,29,.98));box-shadow:var(--shadow);overflow:hidden}
+    .head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px 10px}.title{display:flex;align-items:center;gap:10px}.logo{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-weight:900;color:#03151c;background:linear-gradient(135deg,var(--cyan),var(--blue))}.title strong{font-size:14px}.title small{display:block;color:var(--muted);margin-top:2px;font-size:11px}.status{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:7px}.dot{width:7px;height:7px;border-radius:999px;background:var(--green);box-shadow:0 0 14px rgba(54,211,153,.7)}
+    .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:8px 18px 18px}.card{min-width:0;border:1px solid var(--border);border-radius:16px;background:linear-gradient(180deg,rgba(16,31,53,.9),rgba(8,19,34,.9));padding:14px}.label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}.value{margin-top:8px;font-size:20px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.value.green{color:var(--green)}.value.red{color:var(--red)}.value.cyan{color:var(--cyan)}
+    .empty{padding:22px 18px 24px;text-align:center;color:var(--muted);font-size:13px}.empty strong{display:block;color:var(--text);font-size:15px;margin-bottom:5px}.hidden{display:none!important}
+    @media(max-width:720px){body{padding:4px}.wrap{border-radius:18px}.head{padding:14px 14px 8px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));padding:8px 14px 14px}.value{font-size:18px}}
+  </style>
+</head>
+<body>
+  <section class="wrap" aria-label="Resumo financeiro">
+    <header class="head">
+      <div class="title"><div class="logo">R</div><div><strong>Resumo Financeiro</strong><small>Minhas Finanças RENOVA</small></div></div>
+      <div class="status"><span class="dot"></span><span id="statusText">Conectando...</span></div>
+    </header>
+    <div id="metrics" class="grid hidden">
+      <article class="card"><div class="label">Saldo total</div><div id="balance" class="value cyan">R$ 0,00</div></article>
+      <article class="card"><div class="label">Receitas do mês</div><div id="income" class="value green">R$ 0,00</div></article>
+      <article class="card"><div class="label">Despesas do mês</div><div id="expense" class="value red">R$ 0,00</div></article>
+      <article class="card"><div class="label">Resultado do mês</div><div id="result" class="value">R$ 0,00</div></article>
+    </div>
+    <div id="empty" class="empty"><strong>Aguardando sessão</strong>Entre no módulo principal do Minhas Finanças para visualizar seus resultados aqui.</div>
+  </section>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+    import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '../js/config.js';
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    });
+    const $ = (id) => document.getElementById(id);
+    const money = (v=0) => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v)||0);
+    let lastUserId = null;
+
+    function accountBalance(account, transactions){
+      let balance = Number(account.initial_balance)||0;
+      for(const t of transactions){
+        const amount = Number(t.amount)||0;
+        if(t.account_id===account.id){
+          if(t.kind==='income') balance += amount;
+          if(t.kind==='expense'||t.kind==='transfer') balance -= amount;
+        }
+        if(t.kind==='transfer'&&t.destination_account_id===account.id) balance += amount;
+      }
+      return balance;
+    }
+
+    function loggedOut(){
+      lastUserId=null;
+      $('metrics').classList.add('hidden');
+      $('empty').classList.remove('hidden');
+      $('statusText').textContent='Aguardando login';
+    }
+
+    async function refresh(){
+      const { data:{ session } } = await supabase.auth.getSession();
+      const user = session?.user;
+      if(!user){ loggedOut(); return; }
+      lastUserId=user.id;
+      $('statusText').textContent='Supabase conectado';
+      const [{data:accounts,error:aErr},{data:transactions,error:tErr}] = await Promise.all([
+        supabase.from('accounts').select('id,initial_balance,is_active').eq('is_active',true),
+        supabase.from('transactions').select('id,account_id,destination_account_id,kind,amount,occurred_on').order('occurred_on',{ascending:false}).limit(2000)
+      ]);
+      if(aErr||tErr){
+        $('statusText').textContent='Acesso limitado';
+        return;
+      }
+      const tx=transactions||[];
+      const now=new Date();
+      const monthKey=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+      const monthTx=tx.filter(t=>String(t.occurred_on||'').startsWith(monthKey));
+      const income=monthTx.filter(t=>t.kind==='income').reduce((s,t)=>s+Number(t.amount||0),0);
+      const expense=monthTx.filter(t=>t.kind==='expense').reduce((s,t)=>s+Number(t.amount||0),0);
+      const balance=(accounts||[]).reduce((s,a)=>s+accountBalance(a,tx),0);
+      $('balance').textContent=money(balance);
+      $('income').textContent=money(income);
+      $('expense').textContent=money(expense);
+      $('result').textContent=money(income-expense);
+      $('result').className=`value ${income-expense>=0?'green':'red'}`;
+      $('empty').classList.add('hidden');
+      $('metrics').classList.remove('hidden');
+    }
+
+    supabase.auth.onAuthStateChange(()=>setTimeout(refresh,0));
+    window.addEventListener('focus',refresh);
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden) refresh();});
+    setInterval(refresh,5000);
+    refresh();
+  </script>
+</body>
+</html>

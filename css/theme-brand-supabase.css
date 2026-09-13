@@ -1,37 +1,39 @@
 .renova-company-card{padding:10px}.renova-company-card-vertical{display:flex;flex-direction:column;align-items:stretch;gap:8px}.renova-company-brand-vertical{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px}.renova-company-logo{width:62px;height:62px;flex:0 0 auto;border-radius:16px;object-fit:cover;background:#07111f;border:1px solid rgba(255,205,86,.28);box-shadow:0 0 18px rgba(45,170,255,.15)}.renova-company-copy{display:flex;flex-direction:column;align-items:center;text-align:center;min-width:0}.renova-company-copy strong{font-size:.72rem;letter-spacing:.065em;line-height:1.22}.renova-company-copy span{margin-top:2px;font-size:.58rem;line-height:1.3}.renova-company-creator-vertical{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;margin:1px 0 0;padding-top:8px;border-top:1px solid var(--line)}.renova-company-creator-vertical>div{display:flex;flex-direction:column;align-items:center;min-width:0}.renova-company-creator span{font-size:.52rem;line-height:1.25;color:var(--muted);text-transform:uppercase;letter-spacing:.045em}.renova-company-creator b{margin-top:2px;font-size:.66rem;line-height:1.25;color:var(--text);white-space:normal}.renova-developer-image{width:46px;height:46px;flex:0 0 auto;border-radius:50%;object-fit:cover;border:1px solid rgba(54,196,255,.32);box-shadow:0 0 14px rgba(54,196,255,.13);background:#091522}.renova-ecosystem-link{min-height:34px;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;border:1px solid rgba(50,200,255,.2);border-radius:10px;background:linear-gradient(135deg,rgba(30,199,178,.09),rgba(61,140,255,.09));color:var(--text);font-size:.62rem;font-weight:800;transition:.18s}.renova-ecosystem-link:hover{border-color:rgba(36,224,195,.4);background:linear-gradient(135deg,rgba(36,224,195,.13),rgba(61,140,255,.13));transform:translateY(-1px)}.renova-ecosystem-link span{color:var(--cyan);font-size:.82rem}.renova-developer-no-image .renova-company-creator{padding-left:0}.sidebar-collapsed .renova-company-card{padding:7px;gap:6px}.sidebar-collapsed .renova-company-logo{width:42px;height:42px}.sidebar-collapsed .renova-company-copy,.sidebar-collapsed .renova-company-creator,.sidebar-collapsed .renova-ecosystem-link b,.sidebar-collapsed .renova-theme-text{display:none}.sidebar-collapsed .renova-company-brand-vertical{gap:0}.sidebar-collapsed .renova-ecosystem-link{width:40px;height:36px;min-height:36px;margin:0 auto;padding:0}.sidebar-collapsed .renova-ecosystem-link span{font-size:.95rem}.sidebar-collapsed .renova-theme-toggle{width:40px;height:36px;margin:0 auto;padding:0}.renova-mobile-menu-close{display:none!important}
 
 @media(max-width:760px){
-  .sidebar{width:min(82vw,300px)!important;max-width:300px;height:100dvh;max-height:100dvh;overflow-y:auto!important;overscroll-behavior:contain;padding:14px 12px calc(14px + env(safe-area-inset-bottom))!important;scrollbar-width:thin}
-  .sidebar-head{min-height:46px!important;gap:8px}
-  .sidebar-head .brand-lockup{min-width:0}
-  .sidebar-head .brand-lockup strong{font-size:.76rem}
-  .sidebar-head .brand-lockup span{font-size:.62rem}
-  .main-nav{margin-top:12px!important;gap:2px!important;overflow:visible!important;padding-bottom:4px!important}
-  .nav-item{min-height:40px!important;padding:7px 9px!important;border-radius:11px!important}
-  .nav-item b{font-size:.8rem!important}
-  .nav-separator{margin:5px 7px!important}
-  .renova-company-card{margin:6px 0!important;padding:8px!important;gap:5px!important;border-radius:14px!important;flex:0 0 auto}
-  .renova-company-brand-vertical{gap:4px!important}
-  .renova-company-logo{width:48px!important;height:48px!important;border-radius:14px!important}
-  .renova-company-copy{display:flex!important}
-  .renova-company-copy strong{font-size:.66rem!important;letter-spacing:.055em!important}
-  .renova-company-copy span{font-size:.51rem!important;margin-top:1px!important}
-  .renova-company-creator{display:flex!important}
-  .renova-company-creator-vertical{gap:4px!important;margin:0!important;padding-top:6px!important}
-  .renova-developer-image{display:block;width:38px!important;height:38px!important}
-  .renova-company-creator span{font-size:.45rem!important;line-height:1.18!important;letter-spacing:.035em!important}
-  .renova-company-creator b{font-size:.59rem!important;line-height:1.2!important;margin-top:1px!important}
-  .renova-ecosystem-link{width:100%!important;min-height:31px!important;font-size:.56rem!important;border-radius:9px!important;gap:5px!important}
-  .renova-ecosystem-link span{font-size:.72rem!important}
-  .renova-ecosystem-link b{display:inline!important}
-  .renova-theme-toggle{width:100%!important;min-height:30px!important;height:30px!important;margin-top:0!important;font-size:.56rem!important;border-radius:9px!important;gap:5px!important}
-  .renova-theme-icon{font-size:.72rem!important}
-  .renova-theme-text{display:inline!important}
-  .sidebar-foot{margin-top:6px!important;padding-top:10px!important;flex:0 0 auto}
-  #mobileMenuBtn{position:fixed!important;left:12px!important;right:auto!important;top:calc(12px + env(safe-area-inset-top))!important;z-index:85!important;width:42px!important;height:42px!important;border-radius:13px!important;background:rgba(7,22,38,.96)!important;border:1px solid rgba(36,224,195,.24)!important;color:#eafcff!important;box-shadow:0 10px 28px rgba(0,0,0,.28),0 0 14px rgba(36,224,195,.08)!important;transition:opacity .18s ease,transform .18s ease!important}
-  body.menu-open #mobileMenuBtn{opacity:0!important;pointer-events:none!important;transform:translateX(-8px)!important}
-  .topbar{padding-left:66px!important}
-  #renovaMobileMenuClose.renova-mobile-menu-close{display:grid!important;place-items:center!important;flex:0 0 auto;width:38px!important;height:38px!important;margin-left:auto!important;border-radius:12px!important;background:rgba(255,255,255,.045)!important;border:1px solid var(--line)!important;color:var(--text)!important;font-size:1.35rem!important;line-height:1!important}
+  .sidebar.renova-mobile-dropdown{position:fixed!important;z-index:60!important;top:calc(var(--topbar) + 8px)!important;left:10px!important;right:10px!important;bottom:auto!important;inset:auto 10px auto 10px!important;width:auto!important;max-width:none!important;height:auto!important;max-height:calc(100dvh - var(--topbar) - 20px)!important;overflow-y:auto!important;overscroll-behavior:contain;padding:12px!important;border:1px solid var(--line)!important;border-radius:18px!important;background:var(--surface)!important;box-shadow:0 24px 60px rgba(0,0,0,.28)!important;backdrop-filter:blur(20px)!important;transform:translateY(-10px) scale(.985)!important;transform-origin:top center!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;transition:transform .18s ease,opacity .18s ease,visibility .18s ease!important}
+  body.menu-open .sidebar.renova-mobile-dropdown{transform:translateY(0) scale(1)!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+  .sidebar-head{min-height:42px!important;gap:8px!important;padding:0 2px 6px!important;border-bottom:1px solid var(--line)}
+  .sidebar-head .brand-lockup{min-width:0!important}
+  .sidebar-head .brand-lockup strong{font-size:.72rem!important}
+  .sidebar-head .brand-lockup span{font-size:.58rem!important}
+  .main-nav{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important;margin-top:10px!important;overflow:visible!important;padding-bottom:4px!important}
+  .nav-item{grid-template-columns:26px minmax(0,1fr)!important;min-height:42px!important;padding:7px 9px!important;border-radius:11px!important;background:rgba(61,140,255,.035)!important;border-color:rgba(61,140,255,.06)!important}
+  .nav-item b{font-size:.76rem!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  .nav-item>span{font-size:.95rem!important}
+  .nav-item.active{background:linear-gradient(90deg,rgba(36,224,195,.12),rgba(61,140,255,.08))!important;border-color:rgba(36,224,195,.18)!important}
+  .nav-separator{grid-column:1/-1!important;margin:2px 3px!important}
+  .renova-company-card{margin:6px 0!important;padding:8px!important;gap:5px!important;border-radius:13px!important;flex:0 0 auto!important}
+  .renova-company-brand-vertical{display:grid!important;grid-template-columns:42px 1fr!important;text-align:left!important;justify-content:stretch!important;align-items:center!important;gap:8px!important}
+  .renova-company-logo{width:42px!important;height:42px!important;border-radius:12px!important}
+  .renova-company-copy{align-items:flex-start!important;text-align:left!important}
+  .renova-company-copy strong{font-size:.64rem!important;letter-spacing:.05em!important}
+  .renova-company-copy span{font-size:.5rem!important;margin-top:1px!important}
+  .renova-company-creator-vertical{display:grid!important;grid-template-columns:34px 1fr!important;text-align:left!important;justify-content:stretch!important;align-items:center!important;gap:8px!important;margin:0!important;padding-top:6px!important}
+  .renova-company-creator-vertical>div{align-items:flex-start!important;text-align:left!important}
+  .renova-developer-image{display:block!important;width:34px!important;height:34px!important}
+  .renova-company-creator span{font-size:.42rem!important;line-height:1.15!important;letter-spacing:.025em!important}
+  .renova-company-creator b{font-size:.56rem!important;line-height:1.18!important;margin-top:1px!important}
+  .renova-ecosystem-link{width:100%!important;min-height:30px!important;font-size:.54rem!important;border-radius:8px!important;gap:5px!important}
+  .renova-ecosystem-link span{font-size:.7rem!important}.renova-ecosystem-link b{display:inline!important}
+  .renova-theme-toggle{width:100%!important;min-height:30px!important;height:30px!important;margin-top:0!important;font-size:.54rem!important;border-radius:8px!important;gap:5px!important}
+  .renova-theme-icon{font-size:.7rem!important}.renova-theme-text{display:inline!important}
+  .sidebar-foot{margin-top:6px!important;padding-top:9px!important;flex:0 0 auto!important}
+  .user-meta strong{max-width:180px!important}
+  #mobileMenuBtn{position:relative!important;left:auto!important;right:auto!important;top:auto!important;z-index:auto!important;width:40px!important;height:40px!important;flex:0 0 40px!important;border-radius:12px!important;background:rgba(61,140,255,.08)!important;border:1px solid rgba(61,140,255,.14)!important;color:var(--text)!important;box-shadow:none!important;transform:none!important;opacity:1!important;pointer-events:auto!important;font-size:1.05rem!important}
+  body.menu-open #mobileMenuBtn{opacity:1!important;pointer-events:auto!important;transform:none!important}
+  .topbar{padding-left:14px!important}
+  .mobile-backdrop{z-index:50!important;background:rgba(7,14,26,.30)!important;backdrop-filter:blur(2px)!important}
 }
 
-html[data-theme="light"] .renova-company-logo{background:#fff;border-color:rgba(10,100,160,.18)}html[data-theme="light"] .renova-developer-image{background:#fff;border-color:rgba(10,100,160,.18)}html[data-theme="light"] .renova-ecosystem-link{background:linear-gradient(135deg,#edf8f6,#eef4ff);color:#17314a;border-color:rgba(10,100,160,.16)}html[data-theme="light"] #mobileMenuBtn{background:rgba(255,255,255,.97)!important;color:#17314a!important;border-color:rgba(10,100,160,.18)!important}
+html[data-theme="light"] .renova-company-logo{background:#fff;border-color:rgba(10,100,160,.18)}html[data-theme="light"] .renova-developer-image{background:#fff;border-color:rgba(10,100,160,.18)}html[data-theme="light"] .renova-ecosystem-link{background:linear-gradient(135deg,#edf8f6,#eef4ff);color:#17314a;border-color:rgba(10,100,160,.16)}html[data-theme="light"] #mobileMenuBtn{background:#fff!important;color:#17314a!important;border-color:rgba(10,100,160,.16)!important}html[data-theme="light"] .sidebar.renova-mobile-dropdown{background:rgba(255,255,255,.98)!important;box-shadow:0 20px 55px rgba(27,55,87,.18)!important}html[data-theme="light"] .nav-item{background:#f7fafc!important;color:#425b74!important;border-color:rgba(20,70,110,.06)!important}html[data-theme="light"] .nav-item.active{color:#0c2238!important;background:linear-gradient(90deg,rgba(21,190,167,.11),rgba(61,140,255,.08))!important}

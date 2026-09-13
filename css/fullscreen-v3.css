@@ -1,15 +1,26 @@
-/* RENOVA Fullscreen Embed V4 — viewport fixa e rolagem somente no conteúdo interno. */
-html, body {
+/* RENOVA Fullscreen Embed V5 — full viewport, sem rolagem horizontal.
+   Desktop: sidebar fixa + conteúdo ocupa todo o restante.
+   Mobile: sidebar vira drawer suspenso e conteúdo ocupa 100% da tela. */
+
+html,
+body {
   width: 100%;
-  max-width: none;
+  max-width: 100%;
   min-width: 0;
   height: 100%;
   min-height: 100%;
   margin: 0;
   padding: 0;
   overflow: hidden;
+  overflow-x: hidden !important;
   overscroll-behavior: none;
   background: #050912;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 body,
@@ -18,8 +29,8 @@ body,
 .main-content,
 .content-wrap,
 .page {
-  max-width: none;
   min-width: 0;
+  max-width: 100%;
 }
 
 .auth-view,
@@ -28,6 +39,7 @@ body,
   height: 100vh;
   height: 100dvh;
   min-height: 0;
+  overflow-x: hidden !important;
 }
 
 .auth-view {
@@ -37,7 +49,27 @@ body,
 }
 
 .app-view {
+  position: relative;
   overflow: hidden;
+}
+
+/* Desktop: não usar width:calc + margin; width:auto evita qualquer estouro horizontal. */
+.main-content {
+  width: auto !important;
+  max-width: none;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  margin-left: var(--sidebar);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  overflow-x: hidden !important;
+}
+
+body.sidebar-collapsed .main-content {
+  width: auto !important;
+  margin-left: 78px;
 }
 
 .sidebar {
@@ -47,62 +79,84 @@ body,
   overflow: hidden;
 }
 
-.main-content {
-  width: auto;
-  height: 100vh;
-  height: 100dvh;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
 .topbar {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   flex: 0 0 var(--topbar);
 }
 
 .content-wrap {
   width: 100%;
-  max-width: none;
+  max-width: 100%;
+  min-width: 0;
   margin: 0;
   flex: 1 1 auto;
-  min-height: 0;
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: hidden !important;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   scrollbar-gutter: stable;
 }
 
-@media (min-width: 901px) {
-  .main-content {
-    width: calc(100% - var(--sidebar));
-  }
-
-  body.sidebar-collapsed .main-content {
-    width: calc(100% - 82px);
-  }
+/* Impede cards/grids de criarem largura maior que a área útil. */
+.content-wrap > *,
+.page,
+.metrics-grid,
+.dashboard-grid,
+.panel,
+.metric-card,
+.welcome-row,
+.page-actions {
+  min-width: 0;
+  max-width: 100%;
 }
 
-@media (max-width: 900px) {
-  html, body {
-    height: 100dvh;
-    min-height: 100dvh;
-    overflow: hidden;
-  }
+.metrics-grid,
+.dashboard-grid {
+  width: 100%;
+}
 
+/* Mobile: tela inteira + sidebar suspensa. */
+@media (max-width: 760px) {
+  html,
+  body,
   .app-view,
   .main-content {
     width: 100%;
+    max-width: 100%;
     height: 100dvh;
     min-height: 0;
     margin-left: 0 !important;
     overflow: hidden;
+    overflow-x: hidden !important;
+  }
+
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(86vw, 310px);
+    max-width: 86vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    transform: translateX(-102%);
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 120;
+  }
+
+  .menu-open .sidebar {
+    transform: translateX(0);
+  }
+
+  .mobile-backdrop {
+    z-index: 110;
   }
 
   .topbar,
   .content-wrap {
     width: 100%;
+    max-width: 100%;
   }
 
   .content-wrap {
@@ -112,9 +166,11 @@ body,
   }
 
   .modal-card {
-    width: min(100% - 20px, 680px);
+    width: min(calc(100% - 20px), 680px);
+    max-width: calc(100% - 20px);
     max-height: calc(100dvh - 20px);
     overflow-y: auto;
+    overflow-x: hidden;
     overscroll-behavior: contain;
   }
 }

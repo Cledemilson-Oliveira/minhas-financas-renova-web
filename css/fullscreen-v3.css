@@ -1,0 +1,92 @@
+/* RENOVA Fullscreen Embed V3 — garante que o app use toda a área entregue pelo iframe. */
+html, body {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  background: #050912;
+}
+
+body,
+.auth-view,
+.app-view,
+.main-content,
+.content-wrap,
+.page {
+  max-width: none;
+  min-width: 0;
+}
+
+.auth-view,
+.app-view {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.main-content {
+  width: auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.content-wrap {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+@media (min-width: 901px) {
+  .main-content {
+    width: calc(100% - var(--sidebar));
+  }
+
+  body.sidebar-collapsed .main-content {
+    width: calc(100% - 82px);
+  }
+}
+
+@media (max-width: 900px) {
+  .main-content {
+    width: 100%;
+    margin-left: 0 !important;
+  }
+
+  .topbar,
+  .content-wrap {
+    width: 100%;
+  }
+
+  .content-wrap {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .modal-card {
+    width: min(100% - 20px, 680px);
+    max-height: calc(100dvh - 20px);
+  }
+}
+
+@media (max-width: 560px) {
+  .content-wrap {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .topbar {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}

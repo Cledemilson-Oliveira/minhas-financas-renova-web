@@ -14,6 +14,13 @@ const pageMeta = {
   ai: ['INTELIGÊNCIA FINANCEIRA', 'IA Financeira'], subscription: ['PLANO', 'Assinatura']
 };
 
+const DB_KIND_FROM_UI = { income: 'receita', expense: 'despesa', transfer: 'transferencia' };
+const UI_KIND_FROM_DB = { receita: 'income', despesa: 'expense', transferencia: 'transfer', income: 'income', expense: 'expense', transfer: 'transfer' };
+const UI_CATEGORY_KIND_FROM_DB = { receita: 'income', despesa: 'expense', ambos: 'both', income: 'income', expense: 'expense', both: 'both' };
+function toDbKind(kind) { return DB_KIND_FROM_UI[kind] || kind; }
+function toUiKind(kind) { return UI_KIND_FROM_DB[kind] || kind; }
+function toUiCategoryKind(kind) { return UI_CATEGORY_KIND_FROM_DB[kind] || kind; }
+
 function money(value = 0) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value) || 0);
 }
@@ -95,7 +102,9 @@ async function loadFinancialData() {
   } else {
     $('#connectionBadge').innerHTML = '<i></i> Supabase conectado'; $('#connectionBadge').classList.remove('warn');
   }
-  state.accounts = accounts || []; state.categories = categories || []; state.transactions = transactions || [];
+  state.accounts = accounts || [];
+  state.categories = (categories || []).map(c => ({ ...c, kind: toUiCategoryKind(c.kind) }));
+  state.transactions = (transactions || []).map(t => ({ ...t, kind: toUiKind(t.kind) }));
   renderDashboard(); renderTransactions(); fillTransactionSelects();
 }
 
@@ -206,9 +215,9 @@ $('#transactionForm').addEventListener('submit', async event => {
   if (kind === 'transfer' && (!destination || destination === accountId)) { setLoading(btn, false); return toast('Escolha uma conta de destino diferente.', 'error'); }
   const payload = {
     user_id: state.user.id, account_id: accountId, destination_account_id: kind === 'transfer' ? destination : null,
-    category_id: kind === 'transfer' ? null : ($('#transactionCategory').value || null), kind,
+    category_id: kind === 'transfer' ? null : ($('#transactionCategory').value || null), kind: toDbKind(kind),
     description: $('#transactionDescription').value.trim(), amount: Number($('#transactionAmount').value),
-    occurred_on: $('#transactionDate').value, status: 'paid', notes: $('#transactionNotes').value.trim() || null
+    occurred_on: $('#transactionDate').value, status: 'pago', notes: $('#transactionNotes').value.trim() || null
   };
   const { error } = await supabase.from('transactions').insert(payload);
   setLoading(btn, false);

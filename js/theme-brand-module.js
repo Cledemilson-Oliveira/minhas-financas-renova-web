@@ -9,7 +9,7 @@ function ensureBrandAssetStyles(){
   if(document.querySelector('link[data-renova-brand-assets]'))return;
   const link=document.createElement('link');
   link.rel='stylesheet';
-  link.href='./css/theme-brand-supabase.css?v=20260913-0120';
+  link.href='./css/theme-brand-supabase.css?v=20260913-0140';
   link.dataset.renovaBrandAssets='1';
   document.head.appendChild(link);
 }
@@ -61,45 +61,101 @@ function normalizeConnectionLabel(){
   new MutationObserver(sync).observe(badge,{childList:true,subtree:true,characterData:true});
 }
 
+function closeMobileMenu(){
+  document.body.classList.remove('menu-open');
+  const openBtn=document.querySelector('#mobileMenuBtn');
+  if(openBtn)openBtn.setAttribute('aria-expanded','false');
+}
+
+function ensureMobileMenuUx(){
+  const sidebar=document.querySelector('#sidebar');
+  const sidebarHead=sidebar?.querySelector('.sidebar-head');
+  const nav=document.querySelector('#mainNav');
+  const openBtn=document.querySelector('#mobileMenuBtn');
+  const backdrop=document.querySelector('#mobileBackdrop');
+  if(!sidebar||!sidebarHead||!nav)return;
+
+  // Assinatura fica antes da área de IA para permanecer visível e favorecer conversão.
+  const subscription=nav.querySelector('[data-page="subscription"]');
+  const separator=nav.querySelector('.nav-separator');
+  if(subscription&&separator&&subscription.previousElementSibling!==separator){
+    nav.insertBefore(subscription,separator);
+  }
+
+  if(!document.querySelector('#renovaMobileMenuClose')){
+    const closeBtn=document.createElement('button');
+    closeBtn.id='renovaMobileMenuClose';
+    closeBtn.className='icon-btn mobile-only renova-mobile-menu-close';
+    closeBtn.type='button';
+    closeBtn.setAttribute('aria-label','Fechar menu');
+    closeBtn.textContent='×';
+    sidebarHead.appendChild(closeBtn);
+    closeBtn.addEventListener('click',closeMobileMenu);
+  }
+
+  if(openBtn){
+    openBtn.setAttribute('aria-expanded',document.body.classList.contains('menu-open')?'true':'false');
+    openBtn.setAttribute('aria-controls','sidebar');
+    openBtn.addEventListener('click',()=>{
+      requestAnimationFrame(()=>openBtn.setAttribute('aria-expanded',document.body.classList.contains('menu-open')?'true':'false'));
+    });
+  }
+
+  // Reforço: qualquer escolha do menu fecha o drawer no mobile.
+  nav.addEventListener('click',event=>{
+    if(event.target.closest('[data-page]'))requestAnimationFrame(closeMobileMenu);
+  });
+  backdrop?.addEventListener('click',closeMobileMenu);
+
+  window.addEventListener('resize',()=>{
+    if(window.innerWidth>760)closeMobileMenu();
+  });
+}
+
 function ensureCard(){
   const sidebar=document.querySelector('#sidebar');
   const nav=document.querySelector('#mainNav');
-  if(!sidebar||!nav||document.querySelector('#renovaCompanyCard'))return;
+  if(!sidebar||!nav)return;
 
-  const card=document.createElement('section');
-  card.id='renovaCompanyCard';
-  card.className='renova-company-card renova-company-card-vertical';
-  card.setAttribute('aria-label','Informações do Ecossistema RENOVA');
-  card.innerHTML=`
-    <div class="renova-company-brand renova-company-brand-vertical">
-      <img class="renova-company-logo" src="${BRAND_LOGO}" alt="Logo Ecossistema RENOVA">
-      <div class="renova-company-copy">
-        <strong>ECOSSISTEMA RENOVA</strong>
-        <span>Gestão • Controle • Resultados</span>
+  let card=document.querySelector('#renovaCompanyCard');
+  if(!card){
+    card=document.createElement('section');
+    card.id='renovaCompanyCard';
+    card.className='renova-company-card renova-company-card-vertical';
+    card.setAttribute('aria-label','Informações do Ecossistema RENOVA');
+    card.innerHTML=`
+      <div class="renova-company-brand renova-company-brand-vertical">
+        <img class="renova-company-logo" src="${BRAND_LOGO}" alt="Logo Ecossistema RENOVA">
+        <div class="renova-company-copy">
+          <strong>ECOSSISTEMA RENOVA</strong>
+          <span>Gestão • Controle • Resultados</span>
+        </div>
       </div>
-    </div>
 
-    <div class="renova-company-creator renova-company-creator-vertical">
-      <img class="renova-developer-image" src="${DEVELOPER_IMAGE}" alt="Cledemilson Oliveira de Assis, desenvolvedor do Ecossistema RENOVA">
-      <div>
-        <span>Desenvolvedor do Ecossistema RENOVA</span>
-        <b>Cledemilson Oliveira de Assis</b>
+      <div class="renova-company-creator renova-company-creator-vertical">
+        <img class="renova-developer-image" src="${DEVELOPER_IMAGE}" alt="Cledemilson Oliveira de Assis, desenvolvedor do Ecossistema RENOVA">
+        <div>
+          <span>Desenvolvedor do Ecossistema RENOVA</span>
+          <b>Cledemilson Oliveira de Assis</b>
+        </div>
       </div>
-    </div>
 
-    <a class="renova-ecosystem-link" href="${ECOSSISTEMA_URL}" target="_blank" rel="noopener noreferrer" aria-label="Acessar site do Ecossistema RENOVA">
-      <span>↗</span><b>Acessar Ecossistema RENOVA</b>
-    </a>
+      <a class="renova-ecosystem-link" href="${ECOSSISTEMA_URL}" target="_blank" rel="noopener noreferrer" aria-label="Acessar site do Ecossistema RENOVA">
+        <span>↗</span><b>Acessar Ecossistema RENOVA</b>
+      </a>
 
-    <button id="renovaThemeToggle" class="renova-theme-toggle" type="button">
-      <span class="renova-theme-icon">☀</span>
-      <span class="renova-theme-text">Modo claro</span>
-    </button>`;
+      <button id="renovaThemeToggle" class="renova-theme-toggle" type="button">
+        <span class="renova-theme-icon">☀</span>
+        <span class="renova-theme-text">Modo claro</span>
+      </button>`;
 
-  nav.insertAdjacentElement('afterend',card);
-  applyImageFallbacks(card);
+    nav.insertAdjacentElement('afterend',card);
+    applyImageFallbacks(card);
+    document.querySelector('#renovaThemeToggle')?.addEventListener('click',()=>applyTheme(root.dataset.theme==='light'?'dark':'light'));
+  }
+
   normalizeConnectionLabel();
-  document.querySelector('#renovaThemeToggle')?.addEventListener('click',()=>applyTheme(root.dataset.theme==='light'?'dark':'light'));
+  ensureMobileMenuUx();
   applyTheme(root.dataset.theme||preferredTheme());
 }
 

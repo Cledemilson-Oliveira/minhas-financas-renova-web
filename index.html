@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#050912" />
+  <meta name="description" content="Minhas Finanças RENOVA — gestão financeira simples, inteligente e integrada." />
+  <title>Minhas Finanças RENOVA</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <section id="authView" class="auth-view">
+    <div class="auth-visual" aria-hidden="true">
+      <div class="orb orb-a"></div>
+      <div class="orb orb-b"></div>
+      <div class="grid-bg"></div>
+      <div class="brand-lockup">
+        <div class="brand-mark">R</div>
+        <div>
+          <strong>MINHAS FINANÇAS</strong>
+          <span>RENOVA</span>
+        </div>
+      </div>
+      <div class="auth-copy">
+        <span class="eyebrow">CONTROLE • CLAREZA • DECISÃO</span>
+        <h1>Sua vida financeira em um só lugar.</h1>
+        <p>Organize receitas, despesas, contas, metas e acompanhe sua evolução com uma experiência simples e inteligente.</p>
+        <div class="feature-pills">
+          <span>Dashboard em tempo real</span>
+          <span>Gestão completa</span>
+          <span>IA Financeira</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="auth-panel">
+      <div class="auth-card">
+        <div class="mobile-brand">
+          <div class="brand-mark small">R</div>
+          <div><strong>Minhas Finanças</strong><span>RENOVA</span></div>
+        </div>
+        <div class="auth-tabs" role="tablist">
+          <button class="auth-tab active" data-auth-tab="login" type="button">Entrar</button>
+          <button class="auth-tab" data-auth-tab="signup" type="button">Criar conta</button>
+        </div>
+
+        <form id="loginForm" class="auth-form active" novalidate>
+          <div>
+            <span class="eyebrow">BEM-VINDO DE VOLTA</span>
+            <h2>Acesse sua conta</h2>
+            <p>Entre para continuar sua organização financeira.</p>
+          </div>
+          <label>E-mail<input id="loginEmail" type="email" autocomplete="email" placeholder="voce@email.com" required /></label>
+          <label>Senha<input id="loginPassword" type="password" autocomplete="current-password" placeholder="Sua senha" required /></label>
+          <div class="form-row between">
+            <label class="check"><input id="rememberMe" type="checkbox" checked /> <span>Manter conectado</span></label>
+            <button id="forgotPasswordBtn" class="link-btn" type="button">Esqueci a senha</button>
+          </div>
+          <button id="loginBtn" class="primary-btn full" type="submit">Entrar</button>
+        </form>
+
+        <form id="signupForm" class="auth-form" novalidate>
+          <div>
+            <span class="eyebrow">COMECE GRATUITAMENTE</span>
+            <h2>Crie sua conta</h2>
+            <p>Tenha acesso aos recursos essenciais do Minhas Finanças RENOVA.</p>
+          </div>
+          <label>Nome<input id="signupName" type="text" autocomplete="name" placeholder="Seu nome" required /></label>
+          <label>E-mail<input id="signupEmail" type="email" autocomplete="email" placeholder="voce@email.com" required /></label>
+          <label>Senha<input id="signupPassword" type="password" autocomplete="new-password" minlength="6" placeholder="Mínimo de 6 caracteres" required /></label>
+          <button id="signupBtn" class="primary-btn full" type="submit">Criar conta gratuita</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <div id="appView" class="app-view hidden">
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-head">
+        <div class="brand-lockup compact">
+          <div class="brand-mark small">R</div>
+          <div class="brand-text"><strong>MINHAS FINANÇAS</strong><span>RENOVA</span></div>
+        </div>
+        <button id="collapseSidebarBtn" class="icon-btn desktop-only" type="button" aria-label="Recolher menu">‹</button>
+      </div>
+
+      <nav id="mainNav" class="main-nav" aria-label="Navegação principal">
+        <button class="nav-item active" data-page="dashboard" type="button"><span>⌂</span><b>Dashboard</b></button>
+        <button class="nav-item" data-page="transactions" type="button"><span>↕</span><b>Movimentações</b></button>
+        <button class="nav-item" data-page="accounts" type="button"><span>▣</span><b>Contas</b></button>
+        <button class="nav-item" data-page="cards" type="button"><span>▤</span><b>Cartões</b></button>
+        <button class="nav-item" data-page="budgets" type="button"><span>◎</span><b>Orçamentos</b></button>
+        <button class="nav-item" data-page="goals" type="button"><span>◇</span><b>Metas</b></button>
+        <div class="nav-separator"></div>
+        <button class="nav-item accent" data-page="ai" type="button"><span>✦</span><b>IA Financeira</b></button>
+        <button class="nav-item" data-page="subscription" type="button"><span>★</span><b>Assinatura</b></button>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="user-chip">
+          <div id="userAvatar" class="avatar">U</div>
+          <div class="user-meta"><strong id="sidebarUserName">Usuário</strong><span id="sidebarUserRole">Plano gratuito</span></div>
+        </div>
+        <button id="logoutBtn" class="icon-btn" type="button" aria-label="Sair">↪</button>
+      </div>
+    </aside>
+    <div id="mobileBackdrop" class="mobile-backdrop"></div>
+
+    <main class="main-content">
+      <header class="topbar">
+        <button id="mobileMenuBtn" class="icon-btn mobile-only" type="button" aria-label="Abrir menu">☰</button>
+        <div>
+          <span id="pageEyebrow" class="eyebrow">VISÃO GERAL</span>
+          <h1 id="pageTitle">Dashboard</h1>
+        </div>
+        <div class="topbar-actions">
+          <button id="quickAddBtn" class="primary-btn" type="button">+ Nova movimentação</button>
+        </div>
+      </header>
+
+      <div class="content-wrap">
+        <section id="dashboardPage" class="page active">
+          <div class="welcome-row">
+            <div><h2 id="welcomeText">Olá! 👋</h2><p>Acompanhe seu dinheiro com clareza e tome melhores decisões.</p></div>
+            <span id="connectionBadge" class="status-badge"><i></i> Conectando...</span>
+          </div>
+
+          <div class="metrics-grid">
+            <article class="metric-card"><span>Saldo total</span><strong id="metricBalance">R$ 0,00</strong><small>Contas ativas</small></article>
+            <article class="metric-card income"><span>Receitas do mês</span><strong id="metricIncome">R$ 0,00</strong><small id="incomeCount">0 lançamentos</small></article>
+            <article class="metric-card expense"><span>Despesas do mês</span><strong id="metricExpense">R$ 0,00</strong><small id="expenseCount">0 lançamentos</small></article>
+            <article class="metric-card"><span>Resultado do mês</span><strong id="metricResult">R$ 0,00</strong><small>Receitas − despesas</small></article>
+          </div>
+
+          <div class="dashboard-grid">
+            <article class="panel span-2">
+              <div class="panel-head"><div><span class="eyebrow">MOVIMENTAÇÕES</span><h3>Últimos lançamentos</h3></div><button class="ghost-btn" data-go="transactions" type="button">Ver todos</button></div>
+              <div id="recentTransactions" class="transaction-list"><div class="empty-state">Carregando movimentações...</div></div>
+            </article>
+            <article class="panel">
+              <div class="panel-head"><div><span class="eyebrow">CONTAS</span><h3>Saldos</h3></div></div>
+              <div id="accountsSummary" class="account-list"><div class="empty-state">Carregando contas...</div></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="transactionsPage" class="page">
+          <div class="page-actions"><div><h2>Movimentações</h2><p>Receitas, despesas e transferências em um único histórico.</p></div><button class="primary-btn" data-new-transaction type="button">+ Adicionar</button></div>
+          <div class="panel">
+            <div class="filters"><input id="transactionSearch" type="search" placeholder="Buscar por descrição..." /><select id="transactionKindFilter"><option value="">Todos os tipos</option><option value="income">Receitas</option><option value="expense">Despesas</option><option value="transfer">Transferências</option></select></div>
+            <div id="transactionsTable" class="table-wrap"></div>
+          </div>
+        </section>
+
+        <section id="accountsPage" class="page"><div class="placeholder-panel"><span>▣</span><h2>Contas</h2><p>A estrutura já está conectada à tabela <code>accounts</code>. O gerenciamento completo será a próxima camada funcional.</p></div></section>
+        <section id="cardsPage" class="page"><div class="placeholder-panel"><span>▤</span><h2>Cartões</h2><p>Módulo reservado para cartões, limites, faturas e despesas vinculadas.</p></div></section>
+        <section id="budgetsPage" class="page"><div class="placeholder-panel"><span>◎</span><h2>Orçamentos</h2><p>Módulo reservado para limites mensais e acompanhamento por categoria.</p></div></section>
+        <section id="goalsPage" class="page"><div class="placeholder-panel"><span>◇</span><h2>Metas</h2><p>Módulo reservado para objetivos financeiros e acompanhamento de progresso.</p></div></section>
+        <section id="aiPage" class="page"><div class="placeholder-panel glow"><span>✦</span><h2>IA Financeira RENOVA</h2><p>A interface do chat será integrada aqui mantendo o acesso condicionado à assinatura ativa.</p><button class="primary-btn" data-go="subscription" type="button">Ver assinatura</button></div></section>
+        <section id="subscriptionPage" class="page"><div class="placeholder-panel"><span>★</span><h2>Assinatura</h2><p id="subscriptionStatusText">Verificando sua assinatura...</p></div></section>
+      </div>
+    </main>
+  </div>
+
+  <div id="transactionModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="transactionModalTitle">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-card">
+      <div class="modal-head"><div><span class="eyebrow">NOVO LANÇAMENTO</span><h2 id="transactionModalTitle">Adicionar movimentação</h2></div><button class="icon-btn" data-close-modal type="button">×</button></div>
+      <form id="transactionForm" class="transaction-form">
+        <div class="segmented"><button class="active" data-kind="income" type="button">Receita</button><button data-kind="expense" type="button">Despesa</button><button data-kind="transfer" type="button">Transferência</button></div>
+        <input id="transactionKind" type="hidden" value="income" />
+        <label>Descrição<input id="transactionDescription" type="text" placeholder="Ex.: Salário, mercado, aluguel..." required /></label>
+        <div class="form-grid two"><label>Valor<input id="transactionAmount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0,00" required /></label><label>Data<input id="transactionDate" type="date" required /></label></div>
+        <div class="form-grid two"><label>Conta<select id="transactionAccount" required><option value="">Selecione</option></select></label><label>Categoria<select id="transactionCategory"><option value="">Sem categoria</option></select></label></div>
+        <label id="destinationAccountWrap" class="hidden">Conta de destino<select id="transactionDestinationAccount"><option value="">Selecione</option></select></label>
+        <label>Observações<textarea id="transactionNotes" rows="3" placeholder="Opcional"></textarea></label>
+        <div class="modal-actions"><button class="ghost-btn" data-close-modal type="button">Cancelar</button><button id="saveTransactionBtn" class="primary-btn" type="submit">Salvar movimentação</button></div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>

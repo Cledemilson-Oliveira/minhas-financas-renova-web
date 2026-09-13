@@ -238,3 +238,51 @@ body.sidebar-collapsed .main-content {
     margin-right: 0 !important;
   }
 }
+
+
+/* RENOVA mobile readability v20260913-1125 */
+@media (max-width: 760px) {
+  body { font-size: 16px; }
+
+  .topbar h1 { font-size: 1.12rem; }
+  .topbar .eyebrow { font-size: .68rem; letter-spacing: .14em; }
+
+  .welcome-row h2,
+  .page-actions h2 { font-size: 1.55rem; line-height: 1.15; }
+
+  .welcome-row p,
+  .page-actions p { font-size: .95rem; line-height: 1.5; }
+
+  .status-badge { font-size: .82rem; padding: 9px 12px; }
+
+  .metric-card { min-height: 138px; padding: 18px; }
+  .metric-card > span { font-size: .82rem; }
+  .metric-card strong { font-size: 1.38rem; line-height: 1.15; }
+  .metric-card small { font-size: .78rem; }
+
+  .panel-head h3 { font-size: 1.12rem; }
+  .panel-head .eyebrow { font-size: .7rem; }
+
+  .transaction-main strong,
+  .account-row strong { font-size: .92rem; }
+  .transaction-main span,
+  .account-row small { font-size: .8rem; }
+  .transaction-row > b,
+  .account-row > b { font-size: .88rem; }
+
+  .ghost-btn,
+  .primary-btn { font-size: .9rem; }
+
+  .nav-item { min-height: 49px; }
+  .nav-item b { font-size: .94rem; }
+  .nav-item > span { font-size: 1.12rem; }
+
+  .user-meta strong { font-size: .84rem; }
+  .user-meta span { font-size: .74rem; }
+}
+
+@media (max-width: 420px) {
+  .metrics-grid { grid-template-columns: 1fr 1fr; }
+  .metric-card { min-height: 132px; padding: 16px; }
+  .metric-card strong { font-size: 1.25rem; }
+}

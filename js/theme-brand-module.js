@@ -1,4 +1,4 @@
-const THEME_KEY='renova_theme';
+const THEME_KEY='renova_theme_v2';
 const root=document.documentElement;
 const BRAND_LOGO='https://ysxttnnkuyhzvkjheqfy.supabase.co/storage/v1/object/public/renova-assets/LOGO';
 const DEVELOPER_IMAGE='https://ysxttnnkuyhzvkjheqfy.supabase.co/storage/v1/object/public/renova-assets/DESENVOLVEDOR%20DO%20SISTEMA';
@@ -9,18 +9,19 @@ function ensureBrandAssetStyles(){
   if(document.querySelector('link[data-renova-brand-assets]'))return;
   const link=document.createElement('link');
   link.rel='stylesheet';
-  link.href='./css/theme-brand-supabase.css?v=20260913-0140';
+  link.href='./css/theme-brand-supabase.css?v=20260913-0160';
   link.dataset.renovaBrandAssets='1';
   document.head.appendChild(link);
 }
 
 function preferredTheme(){
   const saved=localStorage.getItem(THEME_KEY);
-  return saved==='light'||saved==='dark'?saved:'dark';
+  return saved==='light'||saved==='dark'?saved:'light';
 }
 
 function applyTheme(theme){
   root.dataset.theme=theme;
+  root.dataset.userTheme='1';
   localStorage.setItem(THEME_KEY,theme);
   const meta=document.querySelector('meta[name="theme-color"]');
   if(meta)meta.setAttribute('content',theme==='light'?'#eef4f9':'#050912');
@@ -64,7 +65,19 @@ function normalizeConnectionLabel(){
 function closeMobileMenu(){
   document.body.classList.remove('menu-open');
   const openBtn=document.querySelector('#mobileMenuBtn');
-  if(openBtn)openBtn.setAttribute('aria-expanded','false');
+  if(openBtn){
+    openBtn.setAttribute('aria-expanded','false');
+    openBtn.setAttribute('aria-label','Abrir menu');
+  }
+}
+
+function syncMobileMenuButton(){
+  const openBtn=document.querySelector('#mobileMenuBtn');
+  if(!openBtn)return;
+  const opened=document.body.classList.contains('menu-open');
+  openBtn.setAttribute('aria-expanded',opened?'true':'false');
+  openBtn.setAttribute('aria-label',opened?'Fechar menu':'Abrir menu');
+  openBtn.textContent=opened?'×':'☰';
 }
 
 function ensureMobileMenuUx(){
@@ -75,41 +88,47 @@ function ensureMobileMenuUx(){
   const backdrop=document.querySelector('#mobileBackdrop');
   if(!sidebar||!sidebarHead||!nav)return;
 
-  // Assinatura fica antes da área de IA para permanecer visível e favorecer conversão.
+  sidebar.classList.add('renova-mobile-dropdown');
+
+  // Assinatura permanece em destaque antes da área de IA.
   const subscription=nav.querySelector('[data-page="subscription"]');
   const separator=nav.querySelector('.nav-separator');
   if(subscription&&separator&&subscription.previousElementSibling!==separator){
     nav.insertBefore(subscription,separator);
   }
 
-  if(!document.querySelector('#renovaMobileMenuClose')){
-    const closeBtn=document.createElement('button');
-    closeBtn.id='renovaMobileMenuClose';
-    closeBtn.className='icon-btn mobile-only renova-mobile-menu-close';
-    closeBtn.type='button';
-    closeBtn.setAttribute('aria-label','Fechar menu');
-    closeBtn.textContent='×';
-    sidebarHead.appendChild(closeBtn);
-    closeBtn.addEventListener('click',closeMobileMenu);
+  document.querySelector('#renovaMobileMenuClose')?.remove();
+
+  if(openBtn&&!openBtn.dataset.renovaDropdownBound){
+    openBtn.dataset.renovaDropdownBound='1';
+    openBtn.setAttribute('aria-controls','sidebar');
+    openBtn.setAttribute('aria-haspopup','menu');
+    openBtn.addEventListener('click',()=>requestAnimationFrame(syncMobileMenuButton));
   }
 
-  if(openBtn){
-    openBtn.setAttribute('aria-expanded',document.body.classList.contains('menu-open')?'true':'false');
-    openBtn.setAttribute('aria-controls','sidebar');
-    openBtn.addEventListener('click',()=>{
-      requestAnimationFrame(()=>openBtn.setAttribute('aria-expanded',document.body.classList.contains('menu-open')?'true':'false'));
+  if(!nav.dataset.renovaDropdownBound){
+    nav.dataset.renovaDropdownBound='1';
+    nav.addEventListener('click',event=>{
+      if(event.target.closest('[data-page]'))requestAnimationFrame(closeMobileMenu);
     });
   }
 
-  // Reforço: qualquer escolha do menu fecha o drawer no mobile.
-  nav.addEventListener('click',event=>{
-    if(event.target.closest('[data-page]'))requestAnimationFrame(closeMobileMenu);
-  });
-  backdrop?.addEventListener('click',closeMobileMenu);
+  if(backdrop&&!backdrop.dataset.renovaDropdownBound){
+    backdrop.dataset.renovaDropdownBound='1';
+    backdrop.addEventListener('click',closeMobileMenu);
+  }
 
-  window.addEventListener('resize',()=>{
-    if(window.innerWidth>760)closeMobileMenu();
-  });
+  if(!document.body.dataset.renovaDropdownKeys){
+    document.body.dataset.renovaDropdownKeys='1';
+    document.addEventListener('keydown',event=>{
+      if(event.key==='Escape'&&document.body.classList.contains('menu-open'))closeMobileMenu();
+    });
+    window.addEventListener('resize',()=>{
+      if(window.innerWidth>760)closeMobileMenu();
+    });
+  }
+
+  syncMobileMenuButton();
 }
 
 function ensureCard(){
@@ -145,8 +164,8 @@ function ensureCard(){
       </a>
 
       <button id="renovaThemeToggle" class="renova-theme-toggle" type="button">
-        <span class="renova-theme-icon">☀</span>
-        <span class="renova-theme-text">Modo claro</span>
+        <span class="renova-theme-icon">☾</span>
+        <span class="renova-theme-text">Modo escuro</span>
       </button>`;
 
     nav.insertAdjacentElement('afterend',card);
@@ -156,9 +175,9 @@ function ensureCard(){
 
   normalizeConnectionLabel();
   ensureMobileMenuUx();
-  applyTheme(root.dataset.theme||preferredTheme());
+  applyTheme(preferredTheme());
 }
 
 ensureBrandAssetStyles();
-applyTheme(root.dataset.theme||preferredTheme());
+applyTheme(preferredTheme());
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ensureCard,{once:true});else ensureCard();

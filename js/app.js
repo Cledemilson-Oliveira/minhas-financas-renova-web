@@ -83,12 +83,10 @@ async function loadUserContext() {
 }
 
 async function loadFinancialData() {
-  const first = new Date(); first.setDate(1);
-  const monthStart = first.toISOString().slice(0, 10);
   const [{ data: accounts, error: accountsError }, { data: categories }, { data: transactions, error: transactionsError }] = await Promise.all([
     supabase.from('accounts').select('id, name, account_type, initial_balance, is_active').eq('is_active', true).order('created_at'),
     supabase.from('categories').select('id, name, kind, icon, is_active').eq('is_active', true).order('name'),
-    supabase.from('transactions').select('id, account_id, destination_account_id, category_id, kind, description, amount, occurred_on, status, notes, created_at').gte('occurred_on', monthStart).order('occurred_on', { ascending: false }).order('created_at', { ascending: false }).limit(300)
+    supabase.from('transactions').select('id, account_id, destination_account_id, category_id, kind, description, amount, occurred_on, status, notes, created_at').order('occurred_on', { ascending: false }).order('created_at', { ascending: false }).limit(2000)
   ]);
   if (accountsError || transactionsError) {
     $('#connectionBadge').innerHTML = '<i></i> Acesso limitado'; $('#connectionBadge').classList.add('warn');
@@ -127,8 +125,11 @@ function accountBalance(account) {
   return balance;
 }
 function renderDashboard() {
-  const incomes = state.transactions.filter(t => t.kind === 'income');
-  const expenses = state.transactions.filter(t => t.kind === 'expense');
+  const now = new Date();
+  const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const monthTransactions = state.transactions.filter(t => String(t.occurred_on || '').startsWith(monthKey));
+  const incomes = monthTransactions.filter(t => t.kind === 'income');
+  const expenses = monthTransactions.filter(t => t.kind === 'expense');
   const income = incomes.reduce((sum, t) => sum + Number(t.amount || 0), 0);
   const expense = expenses.reduce((sum, t) => sum + Number(t.amount || 0), 0);
   const totalBalance = state.accounts.reduce((sum, a) => sum + accountBalance(a), 0);
@@ -137,7 +138,7 @@ function renderDashboard() {
   $('#expenseCount').textContent = `${expenses.length} ${expenses.length === 1 ? 'lançamento' : 'lançamentos'}`;
 
   const recent = state.transactions.slice(0, 6);
-  $('#recentTransactions').innerHTML = recent.length ? recent.map(transactionRowCard).join('') : '<div class="empty-state">Nenhuma movimentação neste mês.</div>';
+  $('#recentTransactions').innerHTML = recent.length ? recent.map(transactionRowCard).join('') : '<div class="empty-state">Nenhuma movimentação cadastrada.</div>';
   $('#accountsSummary').innerHTML = state.accounts.length ? state.accounts.map(a => `<div class="account-row"><div><span class="account-dot"></span><div><strong>${escapeHtml(a.name)}</strong><small>${escapeHtml(a.account_type)}</small></div></div><b>${money(accountBalance(a))}</b></div>`).join('') : '<div class="empty-state">Nenhuma conta cadastrada.</div>';
 }
 function transactionRowCard(t) {
@@ -218,6 +219,7 @@ $('#transactionSearch').addEventListener('input', renderTransactions);
 $('#transactionKindFilter').addEventListener('change', renderTransactions);
 
 async function enterApp(user) {
+  if (state.user?.id === user.id && !$('#appView').classList.contains('hidden')) return;
   state.user = user; $('#authView').classList.add('hidden'); $('#appView').classList.remove('hidden');
   await loadUserContext(); await loadFinancialData();
 }

@@ -39,11 +39,12 @@
     });
     const $ = (id) => document.getElementById(id);
     const money = (v=0) => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v)||0);
-    let lastUserId = null;
+    const toUiKind = (kind) => ({receita:'income',despesa:'expense',transferencia:'transfer',income:'income',expense:'expense',transfer:'transfer'}[kind] || kind);
 
     function accountBalance(account, transactions){
       let balance = Number(account.initial_balance)||0;
-      for(const t of transactions){
+      for(const raw of transactions){
+        const t={...raw,kind:toUiKind(raw.kind)};
         const amount = Number(t.amount)||0;
         if(t.account_id===account.id){
           if(t.kind==='income') balance += amount;
@@ -55,7 +56,6 @@
     }
 
     function loggedOut(){
-      lastUserId=null;
       $('metrics').classList.add('hidden');
       $('empty').classList.remove('hidden');
       $('statusText').textContent='Aguardando login';
@@ -65,7 +65,6 @@
       const { data:{ session } } = await supabase.auth.getSession();
       const user = session?.user;
       if(!user){ loggedOut(); return; }
-      lastUserId=user.id;
       $('statusText').textContent='Supabase conectado';
       const [{data:accounts,error:aErr},{data:transactions,error:tErr}] = await Promise.all([
         supabase.from('accounts').select('id,initial_balance,is_active').eq('is_active',true),
@@ -75,7 +74,7 @@
         $('statusText').textContent='Acesso limitado';
         return;
       }
-      const tx=transactions||[];
+      const tx=(transactions||[]).map(t=>({...t,kind:toUiKind(t.kind)}));
       const now=new Date();
       const monthKey=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
       const monthTx=tx.filter(t=>String(t.occurred_on||'').startsWith(monthKey));

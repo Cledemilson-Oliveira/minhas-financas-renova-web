@@ -60,3 +60,6 @@ async function loadAccess(){if(!user)return;const [{data:a},{data:s}]=await Prom
 function bind(){const input=$('#aiInput'),send=$('#aiSend');send?.addEventListener('click',()=>sendText(input?.value));input?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendText(input.value)}});input?.addEventListener('input',()=>{input.style.height='auto';input.style.height=`${Math.min(120,input.scrollHeight)}px`})}
 
 ensureStyles();ensureUI();bind();const {data:{session}}=await supabase.auth.getSession();user=session?.user||null;if(user)await loadAccess();supabase.auth.onAuthStateChange((_e,s)=>{user=s?.user||null;access=null;subscription=null;if(user)setTimeout(loadAccess,0);else{syncAccessUI();renderGate()}});
+
+// Ferramentas exclusivas da conta dona: análise local sem créditos e central de treinamento.
+import('./ai-owner-tools.js?v=20260913-0070').catch(error=>console.error('Falha ao carregar ferramentas da conta dona',error));

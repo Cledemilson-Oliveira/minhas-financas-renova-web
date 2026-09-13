@@ -7,22 +7,17 @@
   <meta name="description" content="Minhas Finanças RENOVA — gestão financeira simples, inteligente e integrada." />
   <title>Minhas Finanças RENOVA</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-  <link rel="stylesheet" href="./css/styles.css?v=20260913-0001" />
-  <link rel="stylesheet" href="./css/fullscreen-v3.css?v=20260913-0001" />
-  <link rel="stylesheet" href="./css/accounts-module.css?v=20260913-0001" />
+  <link rel="stylesheet" href="./css/styles.css?v=20260913-0015" />
+  <link rel="stylesheet" href="./css/fullscreen-v3.css?v=20260913-0015" />
+  <link rel="stylesheet" href="./css/accounts-module.css?v=20260913-0015" />
 </head>
 <body>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <section id="authView" class="auth-view">
     <div class="auth-visual" aria-hidden="true">
-      <div class="orb orb-a"></div>
-      <div class="orb orb-b"></div>
-      <div class="grid-bg"></div>
-      <div class="brand-lockup">
-        <div class="brand-mark">R</div>
-        <div><strong>MINHAS FINANÇAS</strong><span>RENOVA</span></div>
-      </div>
+      <div class="orb orb-a"></div><div class="orb orb-b"></div><div class="grid-bg"></div>
+      <div class="brand-lockup"><div class="brand-mark">R</div><div><strong>MINHAS FINANÇAS</strong><span>RENOVA</span></div></div>
       <div class="auth-copy">
         <span class="eyebrow">CONTROLE • CLAREZA • DECISÃO</span>
         <h1>Sua vida financeira em um só lugar.</h1>
@@ -30,14 +25,10 @@
         <div class="feature-pills"><span>Dashboard em tempo real</span><span>Gestão completa</span><span>IA Financeira</span></div>
       </div>
     </div>
-
     <div class="auth-panel">
       <div class="auth-card">
         <div class="mobile-brand"><div class="brand-mark small">R</div><div><strong>Minhas Finanças</strong><span>RENOVA</span></div></div>
-        <div class="auth-tabs" role="tablist">
-          <button class="auth-tab active" data-auth-tab="login" type="button">Entrar</button>
-          <button class="auth-tab" data-auth-tab="signup" type="button">Criar conta</button>
-        </div>
+        <div class="auth-tabs" role="tablist"><button class="auth-tab active" data-auth-tab="login" type="button">Entrar</button><button class="auth-tab" data-auth-tab="signup" type="button">Criar conta</button></div>
         <form id="loginForm" class="auth-form active" novalidate>
           <div><span class="eyebrow">BEM-VINDO DE VOLTA</span><h2>Acesse sua conta</h2><p>Entre para continuar sua organização financeira.</p></div>
           <label>E-mail<input id="loginEmail" type="email" autocomplete="email" placeholder="voce@email.com" required /></label>
@@ -73,10 +64,7 @@
         <button class="nav-item accent" data-page="ai" type="button"><span>✦</span><b>IA Financeira</b></button>
         <button class="nav-item" data-page="subscription" type="button"><span>★</span><b>Assinatura</b></button>
       </nav>
-      <div class="sidebar-foot">
-        <div class="user-chip"><div id="userAvatar" class="avatar">U</div><div class="user-meta"><strong id="sidebarUserName">Usuário</strong><span id="sidebarUserRole">Plano gratuito</span></div></div>
-        <button id="logoutBtn" class="icon-btn" type="button" aria-label="Sair">↪</button>
-      </div>
+      <div class="sidebar-foot"><div class="user-chip"><div id="userAvatar" class="avatar">U</div><div class="user-meta"><strong id="sidebarUserName">Usuário</strong><span id="sidebarUserRole">Plano gratuito</span></div></div><button id="logoutBtn" class="icon-btn" type="button" aria-label="Sair">↪</button></div>
     </aside>
     <div id="mobileBackdrop" class="mobile-backdrop"></div>
 
@@ -86,7 +74,6 @@
         <div><span id="pageEyebrow" class="eyebrow">VISÃO GERAL</span><h1 id="pageTitle">Dashboard</h1></div>
         <div class="topbar-actions"><button id="quickAddBtn" class="primary-btn" type="button">+ Nova movimentação</button></div>
       </header>
-
       <div class="content-wrap">
         <section id="dashboardPage" class="page active">
           <div class="welcome-row"><div><h2 id="welcomeText">Olá! 👋</h2><p>Acompanhe seu dinheiro com clareza e tome melhores decisões.</p></div><span id="connectionBadge" class="status-badge"><i></i> Conectando...</span></div>
@@ -108,15 +95,12 @@
         </section>
 
         <section id="accountsPage" class="page">
-          <div class="accounts-toolbar">
-            <div><span class="eyebrow">PATRIMÔNIO</span><h2>Contas</h2><p>Cadastre e organize as contas usadas nas suas movimentações.</p></div>
-            <button class="primary-btn" type="button" data-account-new>+ Nova conta</button>
-          </div>
+          <div class="accounts-toolbar"><div><span class="eyebrow">PATRIMÔNIO</span><h2>Contas</h2><p>Cadastre e organize as contas usadas nas suas movimentações.</p></div><button class="primary-btn" type="button" data-account-new>+ Nova conta</button></div>
           <div class="accounts-summary-card"><div><span>Saldo das contas ativas</span><strong id="accountsTotalBalance">R$ 0,00</strong></div><small id="accountsActiveCount">0 contas ativas</small></div>
           <div id="accountsGrid" class="accounts-grid"><div class="empty-state">Carregando contas...</div></div>
         </section>
 
-        <section id="cardsPage" class="page"><div class="placeholder-panel"><span>▤</span><h2>Cartões</h2><p>Módulo reservado para cartões, limites, faturas e despesas vinculadas.</p></div></section>
+        <section id="cardsPage" class="page"><div class="placeholder-panel"><span>▤</span><h2>Cartões</h2><p>Carregando módulo de cartões...</p></div></section>
         <section id="budgetsPage" class="page"><div class="placeholder-panel"><span>◎</span><h2>Orçamentos</h2><p>Módulo reservado para limites mensais e acompanhamento por categoria.</p></div></section>
         <section id="goalsPage" class="page"><div class="placeholder-panel"><span>◇</span><h2>Metas</h2><p>Módulo reservado para objetivos financeiros e acompanhamento de progresso.</p></div></section>
         <section id="aiPage" class="page"><div class="placeholder-panel glow"><span>✦</span><h2>IA Financeira RENOVA</h2><p>A interface do chat será integrada aqui mantendo o acesso condicionado à assinatura ativa.</p><button class="primary-btn" data-go="subscription" type="button">Ver assinatura</button></div></section>
@@ -126,8 +110,7 @@
   </div>
 
   <div id="transactionModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="transactionModalTitle">
-    <div class="modal-backdrop" data-close-modal></div>
-    <div class="modal-card">
+    <div class="modal-backdrop" data-close-modal></div><div class="modal-card">
       <div class="modal-head"><div><span class="eyebrow">NOVO LANÇAMENTO</span><h2 id="transactionModalTitle">Adicionar movimentação</h2></div><button class="icon-btn" data-close-modal type="button">×</button></div>
       <form id="transactionForm" class="transaction-form">
         <div class="segmented"><button class="active" data-kind="income" type="button">Receita</button><button data-kind="expense" type="button">Despesa</button><button data-kind="transfer" type="button">Transferência</button></div>
@@ -143,15 +126,11 @@
   </div>
 
   <div id="accountModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="accountModalTitle">
-    <div class="modal-backdrop" data-close-account-modal></div>
-    <div class="modal-card">
+    <div class="modal-backdrop" data-close-account-modal></div><div class="modal-card">
       <div class="modal-head"><div><span class="eyebrow">CONTA FINANCEIRA</span><h2 id="accountModalTitle">Nova conta</h2></div><button class="icon-btn" data-close-account-modal type="button">×</button></div>
       <form id="accountForm" class="account-form">
         <label>Nome da conta<input id="accountName" type="text" placeholder="Ex.: Conta principal, banco, carteira..." required /></label>
-        <div class="form-grid two">
-          <label>Tipo<select id="accountType"><option value="conta">Conta corrente</option><option value="poupanca">Poupança</option><option value="carteira">Carteira digital</option><option value="dinheiro">Dinheiro</option><option value="investimento">Investimentos</option><option value="outro">Outra conta</option></select></label>
-          <label>Saldo inicial<input id="accountInitialBalance" type="number" step="0.01" inputmode="decimal" value="0" required /></label>
-        </div>
+        <div class="form-grid two"><label>Tipo<select id="accountType"><option value="conta">Conta corrente</option><option value="poupanca">Poupança</option><option value="carteira">Carteira digital</option><option value="dinheiro">Dinheiro</option><option value="investimento">Investimentos</option><option value="outro">Outra conta</option></select></label><label>Saldo inicial<input id="accountInitialBalance" type="number" step="0.01" inputmode="decimal" value="0" required /></label></div>
         <label id="accountActiveWrap" class="account-active-row hidden"><input id="accountActive" type="checkbox" checked /><span>Conta ativa</span></label>
         <p class="account-help">O saldo inicial representa o valor que já existia na conta antes dos lançamentos registrados no RENOVA.</p>
         <div class="account-modal-actions"><button class="ghost-btn" data-close-account-modal type="button">Cancelar</button><button id="saveAccountBtn" class="primary-btn" type="submit">Salvar conta</button></div>
@@ -159,8 +138,9 @@
     </div>
   </div>
 
-  <script type="module" src="./js/app.js?v=20260913-0001"></script>
-  <script type="module" src="./js/accounts-module.js?v=20260913-0001"></script>
-  <script type="module" src="./js/transactions-module.js?v=20260913-0001"></script>
+  <script type="module" src="./js/app.js?v=20260913-0015"></script>
+  <script type="module" src="./js/accounts-module.js?v=20260913-0015"></script>
+  <script type="module" src="./js/transactions-module.js?v=20260913-0015"></script>
+  <script type="module" src="./js/cards-module.js?v=20260913-0015"></script>
 </body>
 </html>

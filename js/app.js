@@ -61,7 +61,8 @@ async function handleSignup(event) {
 async function handleForgotPassword() {
   const email = $('#loginEmail').value.trim();
   if (!email) return toast('Digite seu e-mail no campo de login primeiro.', 'error');
-  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${location.origin}${location.pathname}` });
+  const resetUrl = new URL('reset-password.html', location.href).href;
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: resetUrl });
   if (error) return toast(error.message, 'error');
   toast('Enviamos as instruções de recuperação para seu e-mail.');
 }

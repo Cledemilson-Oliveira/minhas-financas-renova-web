@@ -1,0 +1,43 @@
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js';
+
+const supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const $=(s,r=document)=>r.querySelector(s);
+const esc=(v='')=>String(v).replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+const money=(v=0)=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v)||0);
+const dateBR=v=>v?new Intl.DateTimeFormat('pt-BR').format(new Date(v)):'—';
+let user=null,access=null,benefits=null,rules=[],plans=[],observer=null;
+
+function ensureStyles(){if(document.querySelector('link[data-referral-benefits]'))return;const l=document.createElement('link');l.rel='stylesheet';l.href='./css/referral-benefits.css?v=20260913-0090';l.dataset.referralBenefits='1';document.head.appendChild(l)}
+function toast(message,type='ok'){const el=$('#toast');if(!el)return;el.textContent=message;el.className=`toast show ${type}`;clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.className='toast',3400)}
+function isOwner(){return access?.role==='dono'&&access?.status==='ativo'}
+function planName(code){return plans.find(p=>p.code===code)?.name||code}
+
+async function loadData(){if(!user)return;const [{data:a},{data:b},{data:p}]=await Promise.all([
+  supabase.from('user_access').select('role,status').eq('user_id',user.id).maybeSingle(),
+  supabase.rpc('get_my_referral_benefits'),
+  supabase.from('ai_subscription_plans').select('code,name,price,sort_order,is_active').order('sort_order')
+]);access=a||null;benefits=b||{rules:[]};plans=p||[];
+if(isOwner()){
+  const {data:r,error}=await supabase.from('referral_benefit_rules').select('code,name,description,qualifying_plan_code,required_active_referrals,reward_plan_code,priority,stack_with_commission,is_active,updated_at').order('priority',{ascending:false});
+  if(!error)rules=r||[];
+}
+renderIntoSubscription()}
+
+function benefitCards(){const list=Array.isArray(benefits?.rules)?benefits.rules:[];if(!list.length)return'<div class="evolve-empty">Nenhuma regra de benefício ativa no momento.</div>';return list.map(r=>{const active=Number(r.active_count||0),required=Number(r.required_active_referrals||1),remaining=Math.max(0,Number(r.remaining_count??required-active)),pct=Math.max(0,Math.min(100,Number(r.progress_percent||0))),unlocked=Boolean(r.unlocked);return `<article class="evolve-rule ${unlocked?'unlocked':''}"><div class="evolve-rule-head"><div><span class="evolve-kicker">${unlocked?'BENEFÍCIO DESBLOQUEADO':'PRÓXIMO BENEFÍCIO'}</span><h4>${esc(r.reward_plan_name)} ${unlocked?'grátis':'gratuito'}</h4></div><span class="evolve-status ${unlocked?'ok':''}">${unlocked?'Ativo':`${active}/${required}`}</span></div><p>Tenha <strong>${required}</strong> indicado(s) ativo(s) no <strong>${esc(r.qualifying_plan_name)}</strong> e mantenha acesso ao <strong>${esc(r.reward_plan_name)}</strong> sem mensalidade.</p><div class="evolve-progress"><i style="width:${pct}%"></i></div><div class="evolve-progress-meta"><span>${active} de ${required} ativos</span><span>${unlocked?'Meta atingida':remaining===1?'Falta 1 indicação ativa':`Faltam ${remaining} indicações ativas`}</span></div>${unlocked&&r.guaranteed_until?`<small class="evolve-until">Condição atual garantida até pelo menos ${dateBR(r.guaranteed_until)}, caso não haja novas renovações.</small>`:''}${r.stack_with_commission?'<small class="evolve-stack">✓ A comissão recorrente continua acumulando normalmente.</small>':''}</article>`}).join('')}
+
+function evolutionBlock(){const best=benefits?.best_reward_plan_code;return `<section id="referralEvolutionBlock" class="evolve-card"><div class="evolve-intro"><div><span class="eyebrow">RENOVA INDIQUE & EVOLUA</span><h3>Indique, ganhe e desbloqueie seu próprio plano</h3><p>Além da comissão recorrente, indicações ativas podem liberar planos RENOVA gratuitamente. O benefício é recalculado automaticamente conforme os pagamentos permanecem ativos.</p></div>${best?`<div class="evolve-best"><span>Seu melhor benefício</span><strong>${esc(planName(best))}</strong><small>Aplicado automaticamente quando for superior ao seu acesso atual.</small></div>`:'<div class="evolve-best muted"><span>Benefício atual</span><strong>Em progresso</strong><small>Continue indicando para liberar seu próximo nível.</small></div>'}</div><div class="evolve-rules">${benefitCards()}</div><p class="evolve-footnote">Só contam indicações com período pago ativo. Cadastro, teste gratuito ou pagamento pendente não entram no cálculo.</p></section>`}
+
+function adminRulesBlock(){if(!isOwner())return'';const planOpts=(selected)=>plans.filter(p=>['renova_essencial','renova_analise','renova_business'].includes(p.code)).map(p=>`<option value="${esc(p.code)}" ${p.code===selected?'selected':''}>${esc(p.name)}</option>`).join('');return `<section id="referralEvolutionAdmin" class="owner-admin-card evolve-admin"><div><span class="eyebrow">ADMINISTRAÇÃO • INDIQUE & EVOLUA</span><h3>Regras de benefícios por indicação</h3><p>Ajuste as metas sem editar código. Acesso gratuito e comissão recorrente são regras independentes.</p></div><div class="evolve-admin-list">${rules.map(r=>`<div class="evolve-admin-row" data-benefit-rule="${esc(r.code)}"><div class="evolve-admin-title"><strong>${esc(r.name)}</strong><small>${esc(r.code)}</small></div><label>Plano que qualifica<select data-rf="qualifying_plan_code">${planOpts(r.qualifying_plan_code)}</select></label><label>Qtd. ativa<input data-rf="required_active_referrals" type="number" min="1" max="1000" value="${Number(r.required_active_referrals||1)}"></label><label>Plano liberado<select data-rf="reward_plan_code">${planOpts(r.reward_plan_code)}</select></label><div class="evolve-admin-checks"><label><input data-rf="stack_with_commission" type="checkbox" ${r.stack_with_commission?'checked':''}> Mantém comissão</label><label><input data-rf="is_active" type="checkbox" ${r.is_active?'checked':''}> Regra ativa</label></div><button class="ghost-btn" data-save-benefit-rule="${esc(r.code)}" type="button">Salvar regra</button></div>`).join('')}</div></section>`}
+
+function renderIntoSubscription(){const page=$('#subscriptionPage');if(!page)return;const shell=$('.plans-shell',page);if(!shell)return;$('#referralEvolutionBlock',page)?.remove();$('#referralEvolutionAdmin',page)?.remove();const referral=$('.referral-card',page),ownerAdmin=$('.owner-admin',page);if(referral)referral.insertAdjacentHTML('afterend',evolutionBlock());else{const plansSection=$('.plans-section',page);if(plansSection)plansSection.insertAdjacentHTML('afterend',evolutionBlock());else shell.insertAdjacentHTML('beforeend',evolutionBlock())}if(isOwner()){if(ownerAdmin)ownerAdmin.insertAdjacentHTML('beforeend',adminRulesBlock());else shell.insertAdjacentHTML('beforeend',`<div class="owner-admin">${adminRulesBlock()}</div>`)}bindRendered()}
+
+async function saveRule(code,button){const row=button.closest('[data-benefit-rule]');if(!row)return;const f=name=>row.querySelector(`[data-rf="${name}"]`);const payload={qualifying_plan_code:f('qualifying_plan_code').value,required_active_referrals:Number(f('required_active_referrals').value||1),reward_plan_code:f('reward_plan_code').value,stack_with_commission:f('stack_with_commission').checked,is_active:f('is_active').checked,updated_at:new Date().toISOString()};if(payload.qualifying_plan_code===payload.reward_plan_code)return toast('O plano que qualifica não pode ser igual ao plano liberado.','error');button.disabled=true;const {error}=await supabase.from('referral_benefit_rules').update(payload).eq('code',code);button.disabled=false;if(error)return toast(error.message,'error');toast('Regra do Indique & Evolua atualizada.');await loadData()}
+
+function bindRendered(){document.querySelectorAll('[data-save-benefit-rule]').forEach(b=>{if(b.dataset.bound)return;b.dataset.bound='1';b.addEventListener('click',()=>saveRule(b.dataset.saveBenefitRule,b))})}
+
+function observe(){const page=$('#subscriptionPage');if(!page||observer)return;observer=new MutationObserver(()=>{if(!$('#referralEvolutionBlock',page)&&$('.plans-shell',page))renderIntoSubscription()});observer.observe(page,{childList:true,subtree:true})}
+
+async function init(session){user=session?.user||null;if(!user)return;ensureStyles();await loadData();observe();window.addEventListener('renova:entitlement',()=>setTimeout(loadData,0),{once:false})}
+
+ensureStyles();const {data:{session}}=await supabase.auth.getSession();await init(session);supabase.auth.onAuthStateChange((_e,s)=>setTimeout(()=>init(s),0));

@@ -9,7 +9,7 @@ function ensureBrandAssetStyles(){
   if(document.querySelector('link[data-renova-brand-assets]'))return;
   const link=document.createElement('link');
   link.rel='stylesheet';
-  link.href='./css/theme-brand-supabase.css?v=20260913-0160';
+  link.href='./css/theme-brand-supabase.css?v=20260913-0170';
   link.dataset.renovaBrandAssets='1';
   document.head.appendChild(link);
 }
@@ -64,11 +64,7 @@ function normalizeConnectionLabel(){
 
 function closeMobileMenu(){
   document.body.classList.remove('menu-open');
-  const openBtn=document.querySelector('#mobileMenuBtn');
-  if(openBtn){
-    openBtn.setAttribute('aria-expanded','false');
-    openBtn.setAttribute('aria-label','Abrir menu');
-  }
+  syncMobileMenuButton();
 }
 
 function syncMobileMenuButton(){
@@ -77,7 +73,7 @@ function syncMobileMenuButton(){
   const opened=document.body.classList.contains('menu-open');
   openBtn.setAttribute('aria-expanded',opened?'true':'false');
   openBtn.setAttribute('aria-label',opened?'Fechar menu':'Abrir menu');
-  openBtn.textContent=opened?'×':'☰';
+  openBtn.innerHTML=opened?'<span aria-hidden="true">×</span><b>Fechar</b>':'<span aria-hidden="true">☰</span><b>Menu</b>';
 }
 
 function ensureMobileMenuUx(){
@@ -90,7 +86,6 @@ function ensureMobileMenuUx(){
 
   sidebar.classList.add('renova-mobile-dropdown');
 
-  // Assinatura permanece em destaque antes da área de IA.
   const subscription=nav.querySelector('[data-page="subscription"]');
   const separator=nav.querySelector('.nav-separator');
   if(subscription&&separator&&subscription.previousElementSibling!==separator){

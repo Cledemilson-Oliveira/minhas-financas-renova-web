@@ -6,12 +6,20 @@ const ECOSSISTEMA_URL='https://ecossistemarenova.servicosgold.com.br';
 const FALLBACK_LOGO='./assets/renova-brand.svg?v=20260913-0100';
 
 function ensureBrandAssetStyles(){
-  if(document.querySelector('link[data-renova-brand-assets]'))return;
-  const link=document.createElement('link');
-  link.rel='stylesheet';
-  link.href='./css/theme-brand-supabase.css?v=20260913-0170';
-  link.dataset.renovaBrandAssets='1';
-  document.head.appendChild(link);
+  if(!document.querySelector('link[data-renova-brand-assets]')){
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href='./css/theme-brand-supabase.css?v=20260913-0170';
+    link.dataset.renovaBrandAssets='1';
+    document.head.appendChild(link);
+  }
+  if(!document.querySelector('link[data-renova-nextgo-menu]')){
+    const menuLink=document.createElement('link');
+    menuLink.rel='stylesheet';
+    menuLink.href='./css/mobile-menu-nextgo.css?v=20260913-0170';
+    menuLink.dataset.renovaNextgoMenu='1';
+    document.head.appendChild(menuLink);
+  }
 }
 
 function preferredTheme(){

@@ -49,6 +49,18 @@ function applyImageFallbacks(card){
   },{once:true});
 }
 
+function normalizeConnectionLabel(){
+  const badge=document.querySelector('#connectionBadge');
+  if(!badge)return;
+  const sync=()=>{
+    if((badge.textContent||'').trim().toLowerCase()==='supabase conectado'){
+      badge.innerHTML='<i></i> Conectado';
+    }
+  };
+  sync();
+  new MutationObserver(sync).observe(badge,{childList:true,subtree:true,characterData:true});
+}
+
 function ensureCard(){
   const sidebar=document.querySelector('#sidebar');
   const nav=document.querySelector('#mainNav');
@@ -86,6 +98,7 @@ function ensureCard(){
 
   nav.insertAdjacentElement('afterend',card);
   applyImageFallbacks(card);
+  normalizeConnectionLabel();
   document.querySelector('#renovaThemeToggle')?.addEventListener('click',()=>applyTheme(root.dataset.theme==='light'?'dark':'light'));
   applyTheme(root.dataset.theme||preferredTheme());
 }

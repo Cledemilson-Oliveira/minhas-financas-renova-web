@@ -1,3 +1,4 @@
+import './transactions-module.js?v=20260913-0001';
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js';
 
@@ -180,9 +181,11 @@ async function saveAccount(event) {
   button.textContent = original;
   if (error) return toast(error.message, 'error');
 
+  const wasEditing = Boolean(editingId);
   closeAccountModal();
-  toast(editingId ? 'Conta atualizada.' : 'Conta criada com sucesso.');
+  toast(wasEditing ? 'Conta atualizada.' : 'Conta criada com sucesso.');
   await loadAccounts();
+  window.dispatchEvent(new CustomEvent('renova:accounts-updated'));
 }
 
 async function toggleAccount(id) {
@@ -195,6 +198,7 @@ async function toggleAccount(id) {
   if (error) return toast(error.message, 'error');
   toast(account.is_active ? 'Conta arquivada.' : 'Conta reativada.');
   await loadAccounts();
+  window.dispatchEvent(new CustomEvent('renova:accounts-updated'));
 }
 
 function escapeHtml(value = '') {
@@ -212,6 +216,7 @@ function bindEvents() {
   });
   $('#accountForm')?.addEventListener('submit', saveAccount);
   document.querySelectorAll('[data-close-account-modal]').forEach(el => el.addEventListener('click', closeAccountModal));
+  window.addEventListener('renova:transactions-updated', () => currentUser && loadAccounts());
 }
 
 async function init(session) {

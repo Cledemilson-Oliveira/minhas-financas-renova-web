@@ -34,6 +34,7 @@ function bind(){const input=$('#aiInput'),send=$('#aiSend');send?.addEventListen
 
 ensureStyles();ensureUI();bind();const {data:{session}}=await supabase.auth.getSession();user=session?.user||null;if(user)await loadAccess();supabase.auth.onAuthStateChange((_e,s)=>{user=s?.user||null;access=null;entitlement=null;if(user)setTimeout(loadAccess,0);else{syncAccessUI();renderGate()}});
 
-// Planos/assinaturas e ferramentas de análise são módulos separados para evitar acoplamento com o núcleo financeiro.
+// Planos/assinaturas, acesso e ferramentas de análise são módulos separados para evitar acoplamento com o núcleo financeiro.
+import('./access-control.js?v=20260913-0080').catch(error=>console.error('Falha ao carregar controle de acesso',error));
 import('./plans-module.js?v=20260913-0080').catch(error=>console.error('Falha ao carregar planos e assinaturas',error));
 import('./ai-owner-tools.js?v=20260913-0080').catch(error=>console.error('Falha ao carregar ferramentas de análise RENOVA',error));

@@ -194,3 +194,47 @@ body.sidebar-collapsed .main-content {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* RENOVA desktop embed fill v20260913-1118 */
+/* Em embeds desktop, o app preenche o viewport inteiro sem alterar o drawer mobile. */
+@media (min-width: 761px) {
+  html,
+  body,
+  .app-view {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .app-view {
+    position: relative;
+    left: 0;
+    right: 0;
+  }
+
+  .sidebar {
+    left: 0 !important;
+  }
+
+  .main-content {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: var(--sidebar);
+    width: auto !important;
+    margin-left: 0 !important;
+  }
+
+  body.sidebar-collapsed .main-content {
+    left: 78px;
+    width: auto !important;
+    margin-left: 0 !important;
+  }
+
+  .content-wrap {
+    max-width: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+}

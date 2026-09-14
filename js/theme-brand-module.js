@@ -1,3 +1,7 @@
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js';
+import { createPublicSales } from './public-sales.js?v=20260913-0200';
+
 const THEME_KEY='renova_theme_v2';
 const root=document.documentElement;
 const BRAND_LOGO='https://ysxttnnkuyhzvkjheqfy.supabase.co/storage/v1/object/public/renova-assets/LOGO';
@@ -181,6 +185,63 @@ function ensureCard(){
   applyTheme(preferredTheme());
 }
 
+let publicSales=null;
+let publicAuthRequested=false;
+
+function setAuthTab(mode='login'){
+  document.querySelectorAll('.auth-tab').forEach(btn=>btn.classList.toggle('active',btn.dataset.authTab===mode));
+  document.querySelector('#loginForm')?.classList.toggle('active',mode==='login');
+  document.querySelector('#signupForm')?.classList.toggle('active',mode==='signup');
+}
+
+function showAuthFromSales(mode='login'){
+  publicAuthRequested=true;
+  publicSales?.hide();
+  document.querySelector('#appView')?.classList.add('hidden');
+  document.querySelector('#authView')?.classList.remove('hidden');
+  setAuthTab(mode);
+  window.scrollTo({top:0,behavior:'instant'});
+}
+
+async function ensurePublicSales(){
+  const authView=document.querySelector('#authView');
+  const appView=document.querySelector('#appView');
+  if(!authView||!appView)return;
+
+  const publicSupabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  publicSales=createPublicSales({supabase:publicSupabase,onAuth:showAuthFromSales});
+
+  const showSales=()=>{
+    authView.classList.add('hidden');
+    appView.classList.add('hidden');
+    publicSales?.show();
+  };
+
+  const {data:{session}}=await publicSupabase.auth.getSession();
+  if(session?.user){
+    publicAuthRequested=false;
+    publicSales.hide();
+  }else{
+    publicAuthRequested=false;
+    showSales();
+  }
+
+  publicSupabase.auth.onAuthStateChange((event,nextSession)=>{
+    if(nextSession?.user){
+      publicAuthRequested=false;
+      publicSales?.hide();
+      return;
+    }
+    if(event==='SIGNED_OUT')publicAuthRequested=false;
+    if(!publicAuthRequested)showSales();
+  });
+}
+
 ensureBrandAssetStyles();
 applyTheme(preferredTheme());
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ensureCard,{once:true});else ensureCard();
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',()=>{ensureCard();ensurePublicSales();},{once:true});
+}else{
+  ensureCard();
+  ensurePublicSales();
+}

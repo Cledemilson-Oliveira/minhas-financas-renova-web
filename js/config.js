@@ -5,3 +5,6 @@ export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_ExcRQAHpToigI3WDwv3tew_O
 
 // Carrega o complemento de receita/despesa fixa por dia após a configuração base.
 queueMicrotask(() => import('./daily-fixed-module.js').catch(error => console.warn('[RENOVA] Módulo de fluxo diário não carregou.', error)));
+
+// Carrega as integrações automáticas de recebimento sem expor tokens privados no frontend.
+queueMicrotask(() => import('./payment-integrations-module.js?v=20260914-1015').catch(error => console.warn('[RENOVA] Integrações de pagamento não carregaram.', error)));

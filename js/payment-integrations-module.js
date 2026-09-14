@@ -410,8 +410,29 @@ async function chargePoint() {
     setProviderStatus(`Cobrança de ${money(draft.amount)} enviada. Aguardando pagamento na Point...`, 'info');
     await pollPointOrder(providerOrderId);
   } catch (error) {
-    setProviderStatus(error.message, 'error');
-    toast(error.message, 'error');
+    const queuedOrder = /already a queued order|queued order/i.test(error.message);
+    if (queuedOrder) {
+      try {
+        const pending = await invoke('mercado-pago-point', {
+          action: 'get_pending_order',
+          payment_terminal_id: terminal.id
+        });
+        if (pending?.order?.provider_order_id && ['created', 'pending', 'at_terminal'].includes(String(pending.order.status))) {
+          currentPointOrder = pending.order;
+          $('#cancelPointBtn')?.classList.remove('hidden');
+          setProviderStatus('Já existe uma cobrança aguardando nesta Point. Conclua na maquininha ou clique em Cancelar cobrança.', 'info');
+          toast('A Point já possui uma cobrança pendente.', 'error');
+          lockManualSave(false);
+          setBusy(btn, false);
+          return;
+        }
+      } catch (lookupError) {
+        console.warn('[RENOVA Point] Não foi possível recuperar a cobrança pendente:', lookupError);
+      }
+    }
+    const message = queuedOrder ? 'Já existe uma cobrança aguardando nesta Point. Cancele-a na maquininha antes de tentar novamente.' : error.message;
+    setProviderStatus(message, 'error');
+    toast(message, 'error');
     lockManualSave(false);
     setBusy(btn, false);
     $('#cancelPointBtn')?.classList.add('hidden');

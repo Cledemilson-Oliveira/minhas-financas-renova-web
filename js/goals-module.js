@@ -28,4 +28,4 @@ function bind(){$('#goalsPage')?.addEventListener('click',e=>{const n=e.target.c
 ensureStyles();ensureUI();bind();const {data:{session}}=await supabase.auth.getSession();user=session?.user||null;if(user)await load();supabase.auth.onAuthStateChange((_e,s)=>{user=s?.user||null;if(user)setTimeout(load,0);else{goals=[];render()}});
 
 // Carrega a IA Financeira, planos, acessos, checkout e Indique & Evolua pela versão atual do produto.
-import('./ai-module.js?v=20260913-0090').catch(error=>console.error('Falha ao carregar IA Financeira',error));
+import('./ai-module.js?v=20260914-2130').catch(error=>console.error('Falha ao carregar IA Financeira',error));

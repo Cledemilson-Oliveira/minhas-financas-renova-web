@@ -32,9 +32,9 @@ Deno.serve(async(req:Request)=>{
   const supabaseUrl=Deno.env.get("SUPABASE_URL")||"";
   const anonKey=Deno.env.get("SUPABASE_ANON_KEY")||"";
   const serviceKey=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||"";
-  const token=Deno.env.get("MP_ACCESS_TOKEN")||"";
+  const token=Deno.env.get("MP_POINT_ACCESS_TOKEN")||"";
   if(!supabaseUrl||!anonKey||!serviceKey)return reply({error:"backend_not_configured"},503);
-  if(!token)return reply({error:"mercado_pago_not_configured",message:"MP_ACCESS_TOKEN ausente no backend."},503);
+  if(!token)return reply({error:"mercado_pago_point_not_configured",message:"MP_POINT_ACCESS_TOKEN ausente no backend."},503);
 
   const auth=req.headers.get("Authorization")||"";
   const userClient=createClient(supabaseUrl,anonKey,{global:{headers:{Authorization:auth}},auth:{persistSession:false}});

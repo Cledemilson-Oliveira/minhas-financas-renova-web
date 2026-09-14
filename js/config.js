@@ -17,7 +17,7 @@ if (!document.querySelector('link[data-renova-sidebar-fit]')) {
 queueMicrotask(() => import('./daily-fixed-module.js').catch(error => console.warn('[RENOVA] Módulo de fluxo diário não carregou.', error)));
 
 // Carrega as integrações automáticas de recebimento sem expor tokens privados no frontend.
-queueMicrotask(() => import('./payment-integrations-module.js?v=20260914-1948').catch(error => console.warn('[RENOVA] Integrações de pagamento não carregaram.', error)));
+queueMicrotask(() => import('./payment-integrations-module.js?v=20260914-2035').catch(error => console.warn('[RENOVA] Integrações de pagamento não carregaram.', error)));
 
 // Trata o retorno do OAuth no próprio domínio RENOVA. Isso evita depender de HTML
 // renderizado diretamente pela Edge Function em navegadores/iframes restritivos.
@@ -27,9 +27,8 @@ queueMicrotask(() => import('./mercado-pago-oauth-return-fix.js?v=20260914-1420'
 // de conexão assim que o painel de Recebimentos existir, evitando disputa de ordem/cache.
 queueMicrotask(() => import('./mercado-pago-oauth-bootstrap.js?v=20260914-1420').catch(error => console.warn('[RENOVA] OAuth Mercado Pago não carregou.', error)));
 
-// Adiciona PIX integrado na Mercado Pago Point. O QR Code é exibido no terminal e a receita
-// só é conciliada após confirmação da order pelo Mercado Pago.
-queueMicrotask(() => import('./point-pix-module.js?v=20260914-1225').catch(error => console.warn('[RENOVA] PIX Point não carregou.', error)));
+// A API Point em modo PDV aceita apenas cartões. O PIX continua disponível diretamente
+// na maquininha quando o usuário alterna o terminal para o modo Venda direta.
 
 // Corrige o contraste do modal/cartões de planos sem alterar o Checkout Mercado Pago.
 queueMicrotask(() => import('./plan-modal-contrast-fix.js?v=20260914-1400').catch(error => console.warn('[RENOVA] Correção de contraste dos planos não carregou.', error)));

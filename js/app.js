@@ -68,7 +68,8 @@ async function handleSignup(event) {
 async function handleForgotPassword() {
   const email = $('#loginEmail').value.trim();
   if (!email) return toast('Digite seu e-mail no campo de login primeiro.', 'error');
-  const resetUrl = new URL('reset-password.html', location.href).href;
+  const resetUrl = new URL('/', location.origin);
+  resetUrl.searchParams.set('auth_action', 'reset-password');
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: resetUrl });
   if (error) return toast(error.message, 'error');
   toast('Enviamos as instruções de recuperação para seu e-mail.');
@@ -78,6 +79,35 @@ $('#loginForm').addEventListener('submit', handleLogin);
 $('#signupForm').addEventListener('submit', handleSignup);
 $('#forgotPasswordBtn').addEventListener('click', handleForgotPassword);
 $('#logoutBtn').addEventListener('click', async () => { await supabase.auth.signOut(); });
+
+const recoveryRequested = new URLSearchParams(location.search).get('auth_action') === 'reset-password' || /(?:^|[&#])type=recovery(?:&|$)/.test(location.hash);
+
+function openPasswordReset() {
+  $('#authView').classList.add('hidden');
+  $('#appView').classList.add('hidden');
+  $('#passwordResetModal').classList.remove('hidden');
+  document.body.classList.add('modal-open');
+  setTimeout(() => $('#newPassword')?.focus(), 80);
+}
+
+$('#passwordResetForm').addEventListener('submit', async event => {
+  event.preventDefault();
+  const password = $('#newPassword').value;
+  const confirmation = $('#confirmNewPassword').value;
+  if (password.length < 8) return toast('A nova senha precisa ter pelo menos 8 caracteres.', 'error');
+  if (password !== confirmation) return toast('As senhas não são iguais.', 'error');
+  const button = $('#saveNewPasswordBtn');
+  setLoading(button, true, 'Salvando...');
+  const { error } = await supabase.auth.updateUser({ password });
+  setLoading(button, false);
+  if (error) return toast(error.message || 'Não foi possível alterar a senha.', 'error');
+  toast('Senha alterada com sucesso. Entre novamente.');
+  await supabase.auth.signOut();
+  history.replaceState({}, document.title, '/');
+  $('#passwordResetModal').classList.add('hidden');
+  document.body.classList.remove('modal-open');
+  leaveApp();
+});
 
 async function loadUserContext() {
   const userId = state.user.id;
@@ -238,9 +268,15 @@ function leaveApp() {
   $('#appView').classList.add('hidden'); $('#authView').classList.remove('hidden'); switchAuthTab('login');
 }
 
-supabase.auth.onAuthStateChange(async (_event, session) => {
+supabase.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'PASSWORD_RECOVERY') {
+    openPasswordReset();
+    return;
+  }
   if (session?.user) await enterApp(session.user); else leaveApp();
 });
 
 const { data: { session } } = await supabase.auth.getSession();
-if (session?.user) await enterApp(session.user); else leaveApp();
+if (recoveryRequested && session?.user) openPasswordReset();
+else if (session?.user) await enterApp(session.user);
+else leaveApp();

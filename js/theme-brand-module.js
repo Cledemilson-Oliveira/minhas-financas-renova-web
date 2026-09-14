@@ -1,6 +1,6 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js';
-import { createPublicSales } from './public-sales.js?v=20260913-0200';
+import { createPublicSales } from './public-sales.js?v=20260913-0210';
 
 const THEME_KEY='renova_theme_v2';
 const root=document.documentElement;

@@ -81,7 +81,7 @@ function providerPanelHtml() {
               <span id="mpIntegrationStatus">Verificando conexão...</span>
             </div>
           </div>
-          <p>Point Smart e Point Pro compatíveis podem receber a cobrança diretamente do RENOVA em modo PDV.</p>
+          <p>No modo PDV, o RENOVA envia cobranças de débito e crédito. Para vender e receber PIX diretamente na Point, altere para Venda direta.</p>
           <div class="provider-card-actions">
             <button id="searchPointTerminalsBtn" class="primary-btn" type="button">Buscar minhas Points</button>
           </div>
@@ -249,7 +249,7 @@ async function searchPointTerminals() {
     }
     host.innerHTML = list.map(item => {
       const id = String(item?.id || item?.terminal_id || item?.device_id || '');
-      const mode = String(item?.operating_mode || item?.mode || '—');
+      const mode = String(item?.operating_mode || item?.mode || '—').toUpperCase();
       const status = String(item?.status || item?.state || '—');
       const name = terminalDisplayName(item);
       return `
@@ -258,7 +258,8 @@ async function searchPointTerminals() {
             <strong>${escapeHtml(name)}</strong>
             <span>ID ${escapeHtml(id)} • modo ${escapeHtml(mode)} • status ${escapeHtml(status)}</span>
           </div>
-          <button class="primary-btn" type="button" data-connect-point="${escapeHtml(id)}" data-connect-point-name="${escapeHtml(name)}" ${id ? '' : 'disabled'}>Vincular e ativar PDV</button>
+          <button class="primary-btn" type="button" data-connect-point="${escapeHtml(id)}" data-connect-point-name="${escapeHtml(name)}" ${id ? '' : 'disabled'}>${mode === 'PDV' ? 'Reintegrar ao RENOVA' : 'Integrar ao RENOVA'}</button>
+          <button class="ghost-btn" type="button" data-point-mode="STANDALONE" data-point-terminal="${escapeHtml(id)}" ${id && mode === 'PDV' ? '' : 'disabled'}>${mode === 'STANDALONE' ? 'Venda direta ativa' : 'Usar direto na Point'}</button>
         </article>`;
     }).join('');
   } catch (error) {
@@ -297,6 +298,26 @@ async function connectPoint(button) {
     // A vinculação já foi concluída no backend. Atualize o restante da tela em
     // segundo plano para uma consulta lenta não deixar o botão em "Vinculando...".
     void loadState().catch(error => console.warn('[RENOVA Point] Falha ao atualizar estado após vínculo:', error));
+  } catch (error) {
+    toast(error.message, 'error');
+    setBusy(button, false);
+  }
+}
+
+async function changePointMode(button) {
+  const terminalId = button.dataset.pointTerminal || '';
+  const operatingMode = button.dataset.pointMode || 'STANDALONE';
+  if (!terminalId) return;
+  setBusy(button, true, 'Alterando...');
+  try {
+    await invoke('mercado-pago-point', {
+      action: 'setup_terminal',
+      terminal_id: terminalId,
+      operating_mode: operatingMode
+    });
+    toast('Venda direta ativada. Reinicie a Point para usar cartão ou PIX na própria maquininha.');
+    await loadState();
+    await searchPointTerminals();
   } catch (error) {
     toast(error.message, 'error');
     setBusy(button, false);
@@ -576,6 +597,8 @@ function bind() {
     if (event.target.closest('#searchPointTerminalsBtn')) void searchPointTerminals();
     const connect = event.target.closest('[data-connect-point]');
     if (connect) void connectPoint(connect);
+    const modeButton = event.target.closest('[data-point-mode]');
+    if (modeButton) void changePointMode(modeButton);
     if (event.target.closest('#saveInfiniteConnectionBtn')) void saveInfiniteConnection();
     if (event.target.closest('#chargePointBtn')) void chargePoint();
     if (event.target.closest('#cancelPointBtn')) void cancelPointOrder();

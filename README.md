@@ -12,7 +12,7 @@ Aplicação web do projeto **Minhas Finanças RENOVA**, construída como projeto
 
 Projeto dedicado: `renova-financas`
 
-> As credenciais e chaves do Supabase não devem ser gravadas diretamente no repositório. Devem ser configuradas como variáveis de ambiente na plataforma de execução.
+> As credenciais, tokens e chaves privadas não devem ser gravados diretamente no repositório. Devem permanecer em secrets/variáveis seguras do backend.
 
 ## Diretrizes
 
@@ -22,7 +22,30 @@ Projeto dedicado: `renova-financas`
 - Preservar funcionalidades estáveis ao evoluir o sistema
 - Evitar retrabalho e duplicação de componentes
 - Integrações financeiras centralizadas no projeto `renova-financas`
+- Não misturar este projeto com o Ecossistema RENOVA
+
+## Documentação
+
+### Registro atual do desenvolvimento
+
+- [`docs/REGISTRO_DESENVOLVIMENTO_2026-09-14.md`](docs/REGISTRO_DESENVOLVIMENTO_2026-09-14.md)
+
+### Pagamentos, maquininhas e integrações
+
+- [`docs/PAGAMENTOS_E_MAQUININHAS.md`](docs/PAGAMENTOS_E_MAQUININHAS.md)
+
+## Integrações de pagamento ativas no roadmap
+
+- Mercado Pago Point
+- InfinitePay Checkout
+- InfiniteTap preparado arquiteturalmente para etapa mobile/deep link
+
+## Backend versionado
+
+- `supabase/functions/mercado-pago-point/index.ts`
+- `supabase/functions/infinitepay-checkout/index.ts`
+- `supabase/functions/infinitepay-webhook/index.ts`
 
 ## Status
 
-Base inicial preparada para integração NextGo + GitHub + Supabase.
+Base NextGo + GitHub + Supabase ativa. Estrutura de pagamentos e maquininhas versionada e documentada. A próxima etapa é conectar a interface de Recebimentos aos adaptadores Mercado Pago Point e InfinitePay já preparados no backend.

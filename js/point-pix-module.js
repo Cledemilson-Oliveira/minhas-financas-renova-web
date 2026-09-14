@@ -28,17 +28,18 @@ function setStatus(message, type = 'info') {
   if (!el) return;
   el.classList.remove('hidden', 'ok', 'error', 'info');
   el.classList.add(type);
-  el.textContent = message;
+  if (el.textContent !== message) el.textContent = message;
 }
 
 function setBusy(button, busy, text = 'Processando...') {
   if (!button) return;
   if (busy) {
     if (!button.dataset.pixOriginalText) button.dataset.pixOriginalText = button.textContent;
-    button.textContent = text;
+    if (button.textContent !== text) button.textContent = text;
     button.disabled = true;
   } else {
-    button.textContent = button.dataset.pixOriginalText || button.textContent;
+    const original = button.dataset.pixOriginalText || button.textContent;
+    if (button.textContent !== original) button.textContent = original;
     button.disabled = false;
     delete button.dataset.pixOriginalText;
   }
@@ -81,6 +82,10 @@ function isPix() {
   return $('#transactionKind')?.value === 'income' && $('#transactionPaymentMethod')?.value === 'pix';
 }
 
+function replaceText(el, text) {
+  if (el && el.textContent !== text) el.textContent = text;
+}
+
 function syncPixUi() {
   if (syncing) return;
   syncing = true;
@@ -97,21 +102,18 @@ function syncPixUi() {
         terminalWrap?.classList.remove('hidden');
         if (terminalWrap) {
           const textNode = [...terminalWrap.childNodes].find(node => node.nodeType === Node.TEXT_NODE);
-          if (textNode) textNode.textContent = 'Maquininha / provedor (opcional no PIX) ';
+          if (textNode && textNode.textContent !== 'Maquininha / provedor (opcional no PIX) ') textNode.textContent = 'Maquininha / provedor (opcional no PIX) ';
         }
         pointWrap?.classList.toggle('hidden', !terminal);
         installments?.classList.add('hidden');
-        if (chargeBtn && !chargeBtn.disabled) chargeBtn.textContent = 'Cobrar PIX na Point';
-        const actionText = pointWrap?.querySelector('small');
-        if (actionText) actionText.textContent = 'O QR Code PIX será exibido na Point e a receita só entra após confirmação.';
+        if (chargeBtn && !chargeBtn.disabled) replaceText(chargeBtn, 'Cobrar PIX na Point');
+        replaceText(pointWrap?.querySelector('small'), 'O QR Code PIX será exibido na Point e a receita só entra após confirmação.');
       } else {
-        if (chargeBtn && !chargeBtn.disabled) chargeBtn.textContent = 'Cobrar na Point';
-        const actionText = pointWrap?.querySelector('small');
-        if (actionText) actionText.textContent = 'O valor será enviado para a maquininha e a receita só entra após aprovação.';
+        if (chargeBtn && !chargeBtn.disabled) replaceText(chargeBtn, 'Cobrar na Point');
+        replaceText(pointWrap?.querySelector('small'), 'O valor será enviado para a maquininha e a receita só entra após aprovação.');
       }
 
-      const providerText = document.querySelector('[data-provider-card="mercado_pago"] p');
-      if (providerText) providerText.textContent = 'Point Smart e Point Pro compatíveis recebem cartão e PIX diretamente do RENOVA em modo PDV.';
+      replaceText(document.querySelector('[data-provider-card="mercado_pago"] p'), 'Point Smart e Point Pro compatíveis recebem cartão e PIX diretamente do RENOVA em modo PDV.');
     } finally {
       syncing = false;
     }
@@ -235,7 +237,7 @@ document.addEventListener('click', event => {
     void cancelPix();
     return;
   }
-  if (event.target.closest('[data-payment-method],[data-kind]')) setTimeout(syncPixUi, 0);
+  if (event.target.closest('[data-payment-method],[data-kind],[data-new-transaction]')) setTimeout(syncPixUi, 0);
 }, true);
 
 document.addEventListener('change', event => {
@@ -246,8 +248,12 @@ document.addEventListener('input', event => {
   if (event.target.matches('#transactionAmount,#transactionDescription')) setTimeout(syncPixUi, 0);
 });
 
-const observer = new MutationObserver(() => setTimeout(syncPixUi, 0));
-observer.observe(document.documentElement, { childList: true, subtree: true });
+let mountAttempts = 0;
+const mountTimer = setInterval(() => {
+  mountAttempts += 1;
+  syncPixUi();
+  if (($('#transactionPaymentWrap') && $('#pointIntegratedActions')) || mountAttempts >= 40) clearInterval(mountTimer);
+}, 200);
 
 const { data: { session } } = await supabase.auth.getSession();
 currentUser = session?.user || null;

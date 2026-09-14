@@ -29,8 +29,8 @@ Deno.serve(async(req:Request)=>{
 
   const supabaseUrl=Deno.env.get("SUPABASE_URL")||"";
   const serviceKey=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||"";
-  const accessToken=Deno.env.get("MP_ACCESS_TOKEN")||"";
-  const secret=Deno.env.get("MP_WEBHOOK_SECRET")||"";
+  const accessToken=Deno.env.get("MP_POINT_ACCESS_TOKEN")||"";
+  const secret=Deno.env.get("MP_POINT_WEBHOOK_SECRET")||"";
   if(!supabaseUrl||!serviceKey||!accessToken||!secret)return reply({error:"backend_not_configured"},503);
 
   const url=new URL(req.url);

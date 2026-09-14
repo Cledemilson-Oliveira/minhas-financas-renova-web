@@ -1,0 +1,354 @@
+/* Minhas Finanças RENOVA — integrações Mercado Pago Point + InfinitePay */
+
+.provider-integrations-panel{
+  display:grid;
+  gap:14px;
+  margin:16px 0;
+  padding:15px;
+  border:1px solid rgba(66,215,196,.18);
+  border-radius:16px;
+  background:linear-gradient(145deg,rgba(66,215,196,.05),rgba(61,140,255,.045));
+}
+
+.provider-integrations-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.provider-integrations-head>div{
+  display:grid;
+  gap:4px;
+}
+
+.provider-integrations-head strong{
+  font-size:.95rem;
+}
+
+.provider-security-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:6px 9px;
+  border-radius:999px;
+  border:1px solid rgba(66,215,196,.18);
+  background:rgba(66,215,196,.06);
+  color:#7eeab8;
+  font-size:.65rem;
+  font-weight:800;
+  white-space:nowrap;
+}
+
+.provider-cards-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:11px;
+}
+
+.provider-card{
+  display:grid;
+  gap:11px;
+  min-width:0;
+  padding:13px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:rgba(255,255,255,.025);
+}
+
+.provider-card-head{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+
+.provider-logo{
+  width:38px;
+  height:38px;
+  border-radius:11px;
+  display:grid;
+  place-items:center;
+  flex:0 0 auto;
+  font-weight:900;
+  border:1px solid rgba(255,255,255,.08);
+}
+
+.provider-logo-mp{
+  background:rgba(61,140,255,.12);
+  color:#99c4ff;
+}
+
+.provider-logo-inf{
+  background:rgba(120,98,255,.12);
+  color:#c4b7ff;
+  font-size:1.35rem;
+}
+
+.provider-card-head>div:last-child{
+  min-width:0;
+  display:grid;
+  gap:3px;
+}
+
+.provider-card-head strong{
+  font-size:.84rem;
+}
+
+.provider-card-head span{
+  color:var(--muted);
+  font-size:.68rem;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.provider-card p,
+.provider-integrations-note{
+  margin:0;
+  color:var(--muted);
+  line-height:1.5;
+  font-size:.73rem;
+}
+
+.provider-card-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.provider-card-actions button{
+  min-height:38px;
+}
+
+.provider-field{
+  display:grid;
+  gap:7px;
+  color:var(--text);
+  font-size:.74rem;
+  font-weight:800;
+}
+
+.provider-input-row{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  border:1px solid var(--line);
+  border-radius:11px;
+  padding:0 10px;
+  background:var(--surface2,#07101e);
+}
+
+.provider-input-row:focus-within{
+  border-color:rgba(66,215,196,.48);
+  box-shadow:0 0 0 3px rgba(66,215,196,.06);
+}
+
+.provider-input-row span{
+  color:var(--muted);
+  font-weight:900;
+}
+
+.provider-input-row input{
+  flex:1;
+  min-width:0;
+  border:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+  padding-left:0!important;
+}
+
+.provider-discovery{
+  display:grid;
+  gap:8px;
+  max-height:290px;
+  overflow:auto;
+  padding-right:2px;
+}
+
+.provider-terminal-result{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:10px;
+  border:1px solid rgba(255,255,255,.055);
+  border-radius:11px;
+  background:rgba(255,255,255,.025);
+}
+
+.provider-terminal-result>div{
+  display:grid;
+  gap:3px;
+  min-width:0;
+}
+
+.provider-terminal-result strong{
+  font-size:.75rem;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.provider-terminal-result span{
+  font-size:.62rem;
+  color:var(--muted);
+  word-break:break-all;
+}
+
+.provider-terminal-result button{
+  flex:0 0 auto;
+  font-size:.68rem;
+  padding:8px 10px;
+}
+
+.provider-loading,
+.provider-empty,
+.provider-error{
+  padding:10px 11px;
+  border-radius:10px;
+  font-size:.7rem;
+  line-height:1.45;
+}
+
+.provider-loading,
+.provider-empty{
+  background:rgba(255,255,255,.03);
+  color:var(--muted);
+}
+
+.provider-error{
+  background:rgba(255,104,120,.07);
+  border:1px solid rgba(255,104,120,.16);
+  color:#ffadb6;
+}
+
+.transaction-provider-actions{
+  display:grid;
+  gap:9px;
+}
+
+.provider-payment-action{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:11px 12px;
+  border:1px solid rgba(66,215,196,.16);
+  border-radius:12px;
+  background:rgba(66,215,196,.045);
+}
+
+.provider-payment-action>div:first-child{
+  display:grid;
+  gap:3px;
+  min-width:0;
+}
+
+.provider-payment-action strong{
+  font-size:.76rem;
+}
+
+.provider-payment-action small{
+  color:var(--muted);
+  font-size:.65rem;
+  line-height:1.4;
+}
+
+.provider-action-controls{
+  display:flex;
+  align-items:end;
+  gap:8px;
+  flex:0 0 auto;
+}
+
+.provider-installments{
+  display:grid;
+  gap:5px;
+  color:var(--muted);
+  font-size:.62rem;
+  font-weight:800;
+}
+
+.provider-installments select{
+  min-width:72px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:var(--surface2,#07101e);
+  color:var(--text);
+  padding:8px 9px;
+}
+
+.provider-payment-status{
+  padding:9px 11px;
+  border-radius:10px;
+  font-size:.7rem;
+  font-weight:700;
+  line-height:1.45;
+}
+
+.provider-payment-status.info{
+  color:#9fc7ff;
+  background:rgba(61,140,255,.075);
+  border:1px solid rgba(61,140,255,.16);
+}
+
+.provider-payment-status.ok{
+  color:#7eeab8;
+  background:rgba(39,217,148,.07);
+  border:1px solid rgba(39,217,148,.16);
+}
+
+.provider-payment-status.error{
+  color:#ffadb6;
+  background:rgba(255,104,120,.07);
+  border:1px solid rgba(255,104,120,.16);
+}
+
+html[data-theme="light"] .provider-integrations-panel{
+  background:linear-gradient(145deg,rgba(15,166,143,.055),rgba(61,140,255,.04));
+}
+
+html[data-theme="light"] .provider-card,
+html[data-theme="light"] .provider-terminal-result{
+  background:rgba(8,32,54,.025);
+}
+
+html[data-theme="light"] .provider-input-row,
+html[data-theme="light"] .provider-installments select{
+  background:#fff;
+  color:#102238;
+}
+
+@media(max-width:760px){
+  .provider-integrations-head{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .provider-cards-grid{
+    grid-template-columns:1fr;
+  }
+
+  .provider-terminal-result,
+  .provider-payment-action{
+    align-items:stretch;
+    flex-direction:column;
+  }
+
+  .provider-terminal-result button,
+  .provider-payment-action>button{
+    width:100%;
+  }
+
+  .provider-action-controls{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    align-items:end;
+    width:100%;
+  }
+
+  .provider-action-controls button{
+    width:100%;
+  }
+}

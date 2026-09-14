@@ -279,9 +279,24 @@ async function connectPoint(button) {
       terminal_id: terminalId,
       name
     });
-    toast(`${data?.terminal?.name || name} conectada em modo PDV.`);
-    await loadState();
-    setTimeout(() => location.reload(), 700);
+    const connectedTerminal = data?.terminal;
+    if (connectedTerminal?.id) {
+      terminals = [
+        ...terminals.filter(item => item.id !== connectedTerminal.id),
+        connectedTerminal
+      ];
+      renderProviderState();
+      updateTransactionActions();
+    }
+
+    button.textContent = 'Conectada';
+    button.disabled = true;
+    button.dataset.originalText = 'Conectada';
+    toast(`${connectedTerminal?.name || name} conectada em modo PDV.`);
+
+    // A vinculação já foi concluída no backend. Atualize o restante da tela em
+    // segundo plano para uma consulta lenta não deixar o botão em "Vinculando...".
+    void loadState().catch(error => console.warn('[RENOVA Point] Falha ao atualizar estado após vínculo:', error));
   } catch (error) {
     toast(error.message, 'error');
     setBusy(button, false);

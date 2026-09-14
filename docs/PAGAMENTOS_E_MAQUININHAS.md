@@ -1,410 +1,357 @@
 # Pagamentos e maquininhas — Minhas Finanças RENOVA
 
-> Documento técnico oficial da integração de pagamentos do projeto **Minhas Finanças RENOVA Web**.
->
-> Atualizado em: 14/09/2026
->
+> Documento técnico oficial da integração de pagamentos do projeto **Minhas Finanças RENOVA Web**.  
+> Atualizado em: **14/09/2026**  
 > Escopo ativo: **Mercado Pago + InfinitePay**.
 
-## 1. Objetivo
+## 1. Arquitetura
 
-O Minhas Finanças RENOVA deve permitir que o usuário registre e concilie recebimentos em dinheiro, Pix, débito e crédito e, quando o provedor permitir, inicie a cobrança diretamente a partir do sistema.
-
-A regra de arquitetura é simples: **nenhuma credencial privada pode ficar no HTML, JavaScript público, GitHub Pages ou iframe da NextGo**. Toda ação sensível passa pelo backend Supabase.
-
-```mermaid
-flowchart LR
-  A[NextGo / iframe] --> B[GitHub Pages]
-  B --> C[Frontend RENOVA]
-  C --> D[Supabase Auth + Banco]
-  C --> E[Supabase Edge Functions]
-  E --> F[Mercado Pago Point API]
-  E --> G[InfinitePay Checkout API]
-  F --> H[Point em modo PDV]
-  G --> I[Checkout InfinitePay]
-  F --> D
-  G --> D
+```text
+NextGo / iframe
+      ↓
+GitHub Pages
+      ↓
+Frontend RENOVA
+      ↓
+Supabase Auth + PostgreSQL + Edge Functions
+      ↓
+Mercado Pago Point / InfinitePay Checkout
 ```
+
+Regra de segurança: **tokens privados, service_role, Access Token, Client Secret e chaves de webhook nunca ficam no HTML, JavaScript público ou GitHub Pages.**
 
 ## 2. Estado atual
 
-| Item | Estado |
+| Recurso | Estado |
 |---|---|
-| Formas de recebimento: Dinheiro, Pix, Débito, Crédito e Outro | Implementado |
+| Dinheiro, Pix, Débito, Crédito e Outro | Implementado |
 | Cadastro de maquininhas | Implementado |
-| Taxa de débito/crédito por maquininha | Implementado |
-| Bruto, taxa e líquido por venda | Implementado |
-| Histórico preserva a taxa usada na data da venda | Implementado |
-| Fundação multi-provedor no Supabase | Implementada |
-| Mercado Pago Point — backend | Implementado |
-| Mercado Pago Point — listar terminais | Implementado |
-| Mercado Pago Point — mudar terminal para PDV | Implementado |
-| Mercado Pago Point — criar/consultar/cancelar order | Implementado |
-| InfinitePay Checkout — backend | Implementado |
+| Taxa de débito/crédito | Implementado |
+| Bruto, taxa e líquido | Implementado |
+| Histórico preserva a taxa original | Implementado |
+| Fundação multi-provedor | Implementada |
+| Área de integrações Mercado Pago + InfinitePay | Implementada |
+| Buscar Points da conta Mercado Pago | Implementado |
+| Vincular Point e ativar modo PDV | Implementado |
+| Cobrar diretamente na Point | Implementado |
+| Consultar/cancelar order Point | Implementado |
+| Webhook Point Orders | Implementado no backend |
 | InfinitePay — salvar InfiniteTag | Implementado |
-| InfinitePay — gerar checkout | Implementado |
-| InfinitePay — payment_check | Implementado |
-| InfinitePay — webhook verificado por payment_check | Implementado |
-| Mercado Pago OAuth por usuário | Próxima etapa |
-| Interface final “Buscar minhas maquininhas / Cobrar” | Próxima etapa |
-| Conciliação automática final `payment_order -> transaction` | Próxima etapa |
-| InfiniteTap no iframe/web | Preparado arquiteturalmente; exige estratégia de retorno por deep link/app |
+| InfinitePay — gerar Checkout Integrado | Implementado |
+| InfinitePay — webhook + `payment_check` | Implementado |
+| Conciliação automática `payment_order -> transaction` | Implementada |
+| OAuth Mercado Pago por usuário | Pendente |
+| Configurar URL do webhook Point no painel Mercado Pago | Ação operacional pendente |
+| InfiniteTap com retorno automático no iframe | Não ativado; exige app/deep link compatível |
 
 ## 3. Banco de dados
 
 ### `payment_terminals`
 
-Tabela das maquininhas/provedores cadastrados pelo usuário.
+Armazena as maquininhas e taxas do usuário.
 
 Campos principais:
 
-- `user_id`: dono da configuração.
-- `name`: nome amigável da maquininha.
-- `provider`: provedor.
-- `external_terminal_id`: ID/serial externo.
-- `debit_fee_percent`: taxa de débito.
-- `credit_fee_percent`: taxa de crédito.
-- `integration_status`: manual, pendente, conectada ou erro.
-- `connection_id`: vínculo com uma conexão do provedor.
-- `integration_mode`: modo de integração.
+- `user_id`
+- `name`
+- `provider`
+- `external_terminal_id`
+- `debit_fee_percent`
+- `credit_fee_percent`
+- `is_active`
+- `integration_status`
+- `connection_id`
+- `integration_mode`
+
+Índice exclusivo evita duplicar o mesmo terminal externo para o mesmo usuário/provedor.
 
 ### `payment_provider_connections`
 
-Representa a conexão do usuário com um provedor.
+Representa a conexão do usuário com o provedor.
 
-Campos principais:
+- Mercado Pago: conexão da Point.
+- InfinitePay: conexão do Checkout Integrado via InfiniteTag.
 
-- `user_id`
-- `provider`
-- `connection_type`
-- `status`
-- `display_name`
-- `account_reference`
-- `metadata`
-
-**Não armazenar Access Token, Client Secret ou qualquer segredo nessa tabela.** Tokens devem ficar em secrets do backend ou ser obtidos por OAuth e armazenados em mecanismo seguro.
+**Não gravar tokens nessa tabela.**
 
 ### `payment_orders`
 
-Representa uma cobrança externa antes de virar uma movimentação financeira definitiva.
+Toda cobrança integrada nasce primeiro como uma `payment_order`.
 
 Campos principais:
 
-- `user_id`
-- `provider`
-- `connection_id`
-- `terminal_id`
-- `provider_order_id`
-- `provider_payment_id`
-- `external_reference`
-- `amount`
-- `payment_method`
-- `installments`
-- `status`
-- `status_detail`
-- `transaction_id`
-- `provider_data`
+- provedor;
+- conexão;
+- terminal;
+- ID da order no provedor;
+- referência externa;
+- valor;
+- método;
+- parcelas;
+- status;
+- `transaction_id` depois da conciliação;
+- dados adicionais em `provider_data`.
 
-O navegador autenticado só pode consultar as próprias orders. Escritas de order são feitas pelo backend com `service_role`.
+O frontend autenticado pode consultar apenas as próprias orders. Escritas sensíveis são feitas no backend.
 
-## 4. Movimentações e taxas
+## 4. Conciliação automática
 
-A tabela `transactions` possui os campos:
+Migration:
 
-- `gross_amount`
-- `payment_method`
-- `payment_terminal_id`
-- `payment_fee_percent`
-- `payment_fee_amount`
+`supabase/migrations/20260914_payment_order_auto_reconciliation.sql`
 
-Para uma receita de cartão:
+Trigger:
+
+`payment_orders_reconcile_processed`
+
+Fluxo:
 
 ```text
-Valor bruto = R$ 100,00
-Taxa = 2,00%
-Taxa monetária = R$ 2,00
-Valor líquido / transactions.amount = R$ 98,00
+payment_order criada
+      ↓
+provedor confirma pagamento
+      ↓
+status = processed
+      ↓
+trigger de conciliação
+      ↓
+transactions recebe uma única receita
+      ↓
+payment_orders.transaction_id é preenchido
 ```
 
-A porcentagem e o valor da taxa são gravados na própria transação. Se a taxa atual da maquininha mudar futuramente, vendas antigas não são recalculadas.
+A função `reconcile_processed_payment_order()` não possui `EXECUTE` para `anon` nem `authenticated`; ela é usada somente como trigger.
+
+A conciliação é idempotente porque uma order que já possui `transaction_id` não gera nova receita.
+
+Para Point, a taxa configurada na maquininha é aplicada no momento da conciliação:
+
+```text
+Bruto = R$ 100,00
+Taxa configurada = 2,00%
+Taxa = R$ 2,00
+Líquido / transactions.amount = R$ 98,00
+```
 
 ## 5. Mercado Pago Point
 
-### Terminais compatíveis documentados pelo Mercado Pago
+### Modelos previstos para integração automática
 
-A documentação atual do Mercado Pago lista os seguintes terminais para integração com sistema PDV:
+De acordo com a documentação atual do Mercado Pago:
 
 - Point Smart 1
 - Point Smart 2
 - Point Pro 2
 - Point Pro 3
 
-A **Point Mini não aparece na lista oficial de terminais integráveis pela API Point/Orders**. No RENOVA ela pode continuar cadastrada em modo manual/assistido para controle de taxa, bruto e líquido, mas não deve ser tratada como terminal PDV automatizado sem documentação oficial específica.
+A **Point Mini** continua como operação manual/assistida; não é tratada como terminal automatizado da API Point/Orders sem documentação oficial equivalente.
+
+### Edge Function
+
+`supabase/functions/mercado-pago-point/index.ts`
+
+Função publicada:
+
+`mercado-pago-point`
+
+Ações:
+
+- `list_terminals` — busca os terminais vinculados à conta.
+- `setup_terminal` — altera `PDV` / `STANDALONE`.
+- `connect_terminal` — coloca a Point em PDV, cria a conexão no RENOVA e cadastra o terminal integrado.
+- `create_order` — cria cobrança Point.
+- `get_order` — consulta e atualiza a order.
+- `cancel_order` — cancela uma order válida.
+
+O `create_order` recebe o **ID local da maquininha do RENOVA**, não aceita simplesmente um terminal externo arbitrário. O backend confere que a maquininha pertence ao usuário, está ativa, conectada e em `mercado_pago_point`.
+
+### Webhook Point
+
+Edge Function:
+
+`supabase/functions/mercado-pago-point-webhook/index.ts`
+
+Função publicada:
+
+`mercado-pago-point-webhook`
+
+URL de produção:
+
+```text
+https://ysxttnnkuyhzvkjheqfy.supabase.co/functions/v1/mercado-pago-point-webhook
+```
+
+No Mercado Pago Developers deve ser selecionado o evento **Order (Mercado Pago)**.
+
+O webhook:
+
+1. valida `x-signature` com `MP_WEBHOOK_SECRET`;
+2. busca a order diretamente no endpoint `/v1/orders/{id}`;
+3. atualiza `payment_orders`;
+4. ao receber `processed`, o trigger cria a receita automaticamente.
+
+Eventos finais tratados incluem processada, falha, cancelamento, expiração e reembolso.
 
 Referências oficiais:
 
 - https://www.mercadopago.com.br/developers/pt/docs/mp-point/overview
 - https://www.mercadopago.com.br/developers/pt/docs/mp-point/configure-terminal
 - https://www.mercadopago.com.br/developers/pt/docs/mp-point/payment-processing
-- https://www.mercadopago.com.br/developers/pt/reference/in-person-payments/point/overview
+- https://www.mercadopago.com.br/developers/pt/docs/mp-point/notifications
 
-### Edge Function
+### Segurança Mercado Pago
 
-Arquivo versionado:
+O token global atual é bloqueado para usuários comuns. Até existir OAuth individual, a função Point permite operação com o token global somente para a **Conta Dono**.
 
-`supabase/functions/mercado-pago-point/index.ts`
+Próxima evolução obrigatória para liberar Point a clientes:
 
-Função publicada no Supabase:
-
-`mercado-pago-point`
-
-Ações atuais:
-
-#### `list_terminals`
-
-Consulta:
-
-`GET /terminals/v1/list`
-
-Permite descobrir os terminais vinculados à conta Mercado Pago.
-
-#### `setup_terminal`
-
-Consulta:
-
-`PATCH /terminals/v1/setup`
-
-Alterna entre:
-
-- `PDV`
-- `STANDALONE`
-
-Para receber cobrança enviada pelo RENOVA, o terminal precisa estar em **PDV**.
-
-#### `create_order`
-
-Consulta:
-
-`POST /v1/orders`
-
-Cria uma cobrança Point usando a API atual de Orders. A order recebe:
-
-- terminal de destino;
-- valor;
-- débito ou crédito;
-- parcelas;
-- referência externa;
-- chave de idempotência.
-
-A order criada também é registrada em `payment_orders`.
-
-#### `get_order`
-
-Consulta:
-
-`GET /v1/orders/{id}`
-
-Atualiza o status da order armazenada no RENOVA.
-
-#### `cancel_order`
-
-Cancela uma order ainda válida e registra a mudança de estado.
-
-### Segurança atual do Mercado Pago
-
-Existe um `MP_ACCESS_TOKEN` usado pelo backend do projeto. Enquanto o OAuth individual ainda não estiver implantado, a função Point bloqueia usuários comuns e permite o token global **somente para a Conta Dono**.
-
-Isso evita que uma venda de outro usuário seja processada acidentalmente na conta Mercado Pago do proprietário do RENOVA.
-
-Para liberar a Point para todos os usuários, implementar **OAuth Mercado Pago por usuário**. A própria documentação do Mercado Pago orienta OAuth para integrações em nome de terceiros.
+**OAuth Mercado Pago por usuário.**
 
 ## 6. InfinitePay
 
-A InfinitePay oferece oficialmente duas integrações para desenvolvedores:
+A integração ativa nesta fase é o **Checkout Integrado**.
 
-1. **InfiniteTap** — pagamento presencial por aproximação usando o celular como maquininha.
-2. **Checkout Integrado** — link/checkout gerado via API para Pix e cartão.
+### Edge Function
+
+`supabase/functions/infinitepay-checkout/index.ts`
+
+Ações:
+
+- `save_connection` — salva a InfiniteTag.
+- `create_checkout` — cria `payment_order` e chama `POST https://api.checkout.infinitepay.io/links`.
+- `payment_check` — confirma a transação com `POST https://api.checkout.infinitepay.io/payment_check`.
+
+O checkout recebe `order_nsu`, `redirect_url`, `webhook_url` e itens em centavos.
+
+### Webhook
+
+`supabase/functions/infinitepay-webhook/index.ts`
+
+O webhook não confia apenas no payload recebido. Ele executa `payment_check`, confirma o `order_nsu`, compara o valor pago com o valor esperado e só então muda a order para `processed`.
+
+Quando isso acontece, a conciliação automática gera a receita no financeiro.
 
 Referências oficiais:
 
 - https://www.infinitepay.io/desenvolvedores
 - https://www.infinitepay.io/checkout
 - https://www.infinitepay.io/checkout-documentacao
-- https://www.infinitepay.io/checkout-tap
 - https://ajuda.infinitepay.io/pt-BR/articles/10766888-como-usar-o-checkout-integrado-da-infinitepay
-
-### Edge Function `infinitepay-checkout`
-
-Arquivo:
-
-`supabase/functions/infinitepay-checkout/index.ts`
-
-Ações:
-
-#### `save_connection`
-
-Salva a InfiniteTag do usuário em `payment_provider_connections`.
-
-A InfiniteTag não é tratada como segredo. Ainda assim, o registro fica isolado por usuário.
-
-#### `create_checkout`
-
-Cria a `payment_order` no RENOVA e envia:
-
-`POST https://api.checkout.infinitepay.io/links`
-
-O payload contém:
-
-- `handle` / InfiniteTag;
-- `redirect_url`;
-- `webhook_url`;
-- `order_nsu`;
-- itens e valores em centavos.
-
-O link devolvido fica armazenado junto à order.
-
-#### `payment_check`
-
-Consulta:
-
-`POST https://api.checkout.infinitepay.io/payment_check`
-
-O RENOVA valida:
-
-- `handle`;
-- `order_nsu`;
-- `transaction_nsu`;
-- `slug`;
-- confirmação de pagamento;
-- valor esperado.
-
-### Edge Function `infinitepay-webhook`
-
-Arquivo:
-
-`supabase/functions/infinitepay-webhook/index.ts`
-
-A função é pública porque é chamada pelo provedor, mas **não confia cegamente no payload recebido**. Antes de marcar a order como processada, chama `payment_check` na InfinitePay e compara o valor confirmado com o valor da order do RENOVA.
-
-O resultado verificado é persistido em `payment_orders.provider_data`.
 
 ### InfiniteTap
 
-O fluxo oficial usa deep link para abrir o app InfinitePay e outro deep link (`result_url`) para retornar ao aplicativo de origem.
+A estrutura do banco continua preparada para `infinitepay_tap`, mas o retorno oficial do InfiniteTap depende de deep link/app de origem. Como o RENOVA atual roda como web app dentro de iframe, não vamos simular um retorno nativo que não existe.
 
-Exemplo conceitual:
-
-```text
-RENOVA -> infinitepaydash://infinitetap-app?... -> App InfinitePay -> resultado -> app de origem
-```
-
-O Minhas Finanças RENOVA atual roda como web app dentro de iframe/NextGo. Por isso, **não ativar retorno automático do InfiniteTap como se fosse um app nativo** até definirmos uma destas estratégias:
-
-- PWA com protocolo/Universal Link compatível;
-- wrapper Android/iOS;
-- aplicativo RENOVA com deep link próprio.
-
-O banco já prevê `infinitepay_tap`, evitando refazer a modelagem no futuro.
-
-## 7. Fluxo final desejado — Point
-
-```mermaid
-sequenceDiagram
-  actor U as Usuário
-  participant R as RENOVA
-  participant S as Supabase
-  participant MP as Mercado Pago
-  participant P as Point
-
-  U->>R: informa valor e escolhe Point
-  R->>S: create_order
-  S->>MP: POST /v1/orders
-  MP->>P: envia cobrança
-  P->>MP: pagamento aprovado
-  R->>S: consulta/notificação
-  S->>MP: valida status
-  S->>R: order processada
-  R->>S: gera/concilia transaction
-```
-
-## 8. Fluxo final desejado — InfinitePay Checkout
-
-```mermaid
-sequenceDiagram
-  actor U as Usuário
-  participant R as RENOVA
-  participant S as Supabase
-  participant IP as InfinitePay
-
-  U->>R: informa valor
-  R->>S: create_checkout
-  S->>IP: POST /links
-  IP->>S: checkout URL
-  S->>R: checkout URL
-  R->>IP: usuário abre e paga
-  IP->>S: webhook
-  S->>IP: payment_check
-  IP->>S: pagamento confirmado
-  S->>R: order processada
-```
-
-## 9. Secrets e variáveis
-
-### Mercado Pago
-
-Backend:
-
-- `MP_ACCESS_TOKEN`
-- `MP_WEBHOOK_SECRET` quando aplicável ao webhook Mercado Pago
-
-Nunca colocar esses valores no repositório.
-
-### InfinitePay
-
-O Checkout Integrado documentado utiliza a InfiniteTag/handle no payload. O backend do RENOVA mantém a lógica de criação e verificação da order centralizada no Supabase.
-
-### Geral
-
-- `SUPABASE_URL`
-- `SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `APP_PUBLIC_URL` opcional; fallback atual: `https://minhasfinancas.servicosgold.com.br/`
-
-## 10. Arquivos do projeto relacionados
+## 7. Interface implementada
 
 Frontend:
 
 - `js/payments-module.js`
 - `css/payments-module.css`
+- `js/payment-integrations-module.js`
+- `css/payment-integrations-module.css`
 
-Banco:
+O módulo de integrações é carregado por `js/config.js`.
+
+Na tela **Recebimentos** o usuário encontra:
+
+### Mercado Pago
+
+- status da integração;
+- botão **Buscar minhas Points**;
+- lista de terminais encontrados;
+- botão **Vincular e ativar PDV**.
+
+### InfinitePay
+
+- campo **InfiniteTag**;
+- botão **Conectar InfinitePay**.
+
+No lançamento de receita:
+
+### Point integrada
+
+Quando Crédito/Débito + Point integrada são selecionados:
+
+- aparece **Cobrar na Point**;
+- crédito permite selecionar parcelas;
+- a order é enviada;
+- o sistema acompanha o status;
+- somente após `processed` a receita é criada.
+
+### InfinitePay
+
+Quando a InfinitePay está conectada:
+
+- aparece **Gerar checkout InfinitePay**;
+- o checkout é criado pela API;
+- o pagamento é confirmado pelo webhook / `payment_check`;
+- a receita é conciliada automaticamente.
+
+## 8. Separação de responsabilidades
+
+Não misturar:
+
+### Assinatura do Minhas Finanças RENOVA
+
+Pagamento que o usuário faz para contratar um plano do aplicativo.
+
+### Recebimento do usuário
+
+Pagamento que o cliente daquele usuário faz por um produto ou serviço.
+
+As duas operações usam fluxos independentes.
+
+## 9. Arquivos principais
+
+### Banco
 
 - `supabase/migrations/20260914_payment_methods_and_card_terminals.sql`
 - `supabase/migrations/20260914_payment_provider_integrations_foundation.sql`
+- `supabase/migrations/20260914_payment_order_auto_reconciliation.sql`
 
-Backend:
+### Backend
 
 - `supabase/functions/mercado-pago-point/index.ts`
+- `supabase/functions/mercado-pago-point-webhook/index.ts`
 - `supabase/functions/infinitepay-checkout/index.ts`
 - `supabase/functions/infinitepay-webhook/index.ts`
 
-## 11. Checklist para a próxima etapa
+### Frontend
 
-1. Criar na tela **Recebimentos** a área “Integrações”.
-2. Exibir apenas **Mercado Pago** e **InfinitePay** como integrações ativas.
-3. Mercado Pago: botão **Buscar minhas maquininhas**.
-4. Permitir selecionar Point Smart/Pro encontrada pela API.
-5. Colocar terminal selecionado em modo PDV.
-6. Criar botão **Cobrar na maquininha** no lançamento de receita.
-7. Fazer a primeira cobrança de teste.
-8. Configurar notificações/consulta de status e finalizar a conciliação automática.
-9. InfinitePay: campo **Minha InfiniteTag** e botão **Conectar**.
-10. Criar botão **Gerar checkout InfinitePay**.
-11. Testar Pix e cartão com `payment_check` + webhook.
-12. Implantar OAuth Mercado Pago antes de liberar Point automática para contas que não sejam a Conta Dono.
+- `js/payments-module.js`
+- `css/payments-module.css`
+- `js/payment-integrations-module.js`
+- `css/payment-integrations-module.css`
+- `js/config.js`
+
+## 10. Próximos passos operacionais
+
+1. No Mercado Pago Developers, configurar o webhook acima e marcar **Order (Mercado Pago)**.
+2. Abrir **Recebimentos** na Conta Dono.
+3. Clicar em **Buscar minhas Points**.
+4. Vincular Point Pro/Smart desejada e ativar PDV.
+5. Editar as taxas de débito/crédito da maquininha no RENOVA.
+6. Fazer uma cobrança de teste com valor baixo.
+7. Confirmar se a receita entra automaticamente no dashboard após aprovação.
+8. Informar a InfiniteTag da conta InfinitePay.
+9. Habilitar Checkout Integrado no app/site InfinitePay, se ainda não estiver habilitado.
+10. Gerar um checkout de teste e confirmar a conciliação automática.
+11. Depois dos testes da Conta Dono, implementar OAuth Mercado Pago para usuários do sistema.
+
+## 11. Segurança verificada
+
+Após a migration de conciliação:
+
+- trigger de conciliação criado;
+- índices de unicidade criados;
+- `authenticated` não possui `EXECUTE` na função de trigger;
+- `anon` não possui `EXECUTE` na função de trigger.
+
+O Security Advisor continua apontando avisos **anteriores** em outras funções `SECURITY DEFINER` e proteção contra senhas vazadas desativada. Esses itens devem ser tratados em uma revisão de segurança separada.
 
 ## 12. Regra permanente
 
-O frontend nunca deve marcar uma receita como paga apenas porque conseguiu criar uma order ou abrir um checkout.
+**Criar checkout ou criar order não significa pagamento aprovado.**
 
-Uma receita automática só deve ser consolidada depois da confirmação do provedor. Para InfinitePay, usar `payment_check`. Para Mercado Pago Point, validar o estado final da order/notificação oficial.
+O Minhas Finanças RENOVA só consolida receita integrada depois da confirmação oficial do provedor.

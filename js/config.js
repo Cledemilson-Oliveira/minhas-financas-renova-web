@@ -17,7 +17,7 @@ if (!document.querySelector('link[data-renova-sidebar-fit]')) {
 queueMicrotask(() => import('./daily-fixed-module.js').catch(error => console.warn('[RENOVA] Módulo de fluxo diário não carregou.', error)));
 
 // Carrega as integrações automáticas de recebimento sem expor tokens privados no frontend.
-queueMicrotask(() => import('./payment-integrations-module.js?v=20260914-1935').catch(error => console.warn('[RENOVA] Integrações de pagamento não carregaram.', error)));
+queueMicrotask(() => import('./payment-integrations-module.js?v=20260914-1948').catch(error => console.warn('[RENOVA] Integrações de pagamento não carregaram.', error)));
 
 // Trata o retorno do OAuth no próprio domínio RENOVA. Isso evita depender de HTML
 // renderizado diretamente pela Edge Function em navegadores/iframes restritivos.

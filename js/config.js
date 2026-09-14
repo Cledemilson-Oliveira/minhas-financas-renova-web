@@ -9,9 +9,13 @@ queueMicrotask(() => import('./daily-fixed-module.js').catch(error => console.wa
 // Carrega as integrações automáticas de recebimento sem expor tokens privados no frontend.
 queueMicrotask(() => import('./payment-integrations-module.js?v=20260914-1015').catch(error => console.warn('[RENOVA] Integrações de pagamento não carregaram.', error)));
 
+// Trata o retorno do OAuth no próprio domínio RENOVA. Isso evita depender de HTML
+// renderizado diretamente pela Edge Function em navegadores/iframes restritivos.
+queueMicrotask(() => import('./mercado-pago-oauth-return-fix.js?v=20260914-1420').catch(error => console.warn('[RENOVA] Retorno OAuth Mercado Pago não carregou.', error)));
+
 // OAuth Mercado Pago multiusuário. O bootstrap observa a interface e monta o botão
 // de conexão assim que o painel de Recebimentos existir, evitando disputa de ordem/cache.
-queueMicrotask(() => import('./mercado-pago-oauth-bootstrap.js?v=20260914-1355').catch(error => console.warn('[RENOVA] OAuth Mercado Pago não carregou.', error)));
+queueMicrotask(() => import('./mercado-pago-oauth-bootstrap.js?v=20260914-1420').catch(error => console.warn('[RENOVA] OAuth Mercado Pago não carregou.', error)));
 
 // Adiciona PIX integrado na Mercado Pago Point. O QR Code é exibido no terminal e a receita
 // só é conciliada após confirmação da order pelo Mercado Pago.

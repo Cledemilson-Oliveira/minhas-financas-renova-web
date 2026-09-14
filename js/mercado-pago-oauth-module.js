@@ -10,6 +10,8 @@ let currentUser = null;
 let currentRole = null;
 let oauthConnection = null;
 let statusObserver = null;
+let bound = false;
+let rendering = false;
 
 function toast(message, type = 'ok') {
   const el = $('#toast');
@@ -87,42 +89,53 @@ async function loadStatus() {
   render();
 }
 
+function setText(el, value) {
+  if (el && el.textContent !== value) el.textContent = value;
+}
+
 function render() {
-  const title = $('#mpOauthTitle');
-  const description = $('#mpOauthDescription');
-  const connect = $('#connectMercadoPagoOauthBtn');
-  const disconnect = $('#disconnectMercadoPagoOauthBtn');
-  const search = $('#searchPointTerminalsBtn');
-  const mpStatus = $('#mpIntegrationStatus');
-  if (!title || !description) return;
-  const dot = title.querySelector('.mp-oauth-dot');
+  if (rendering) return;
+  rendering = true;
+  try {
+    const title = $('#mpOauthTitle');
+    const description = $('#mpOauthDescription');
+    const connect = $('#connectMercadoPagoOauthBtn');
+    const disconnect = $('#disconnectMercadoPagoOauthBtn');
+    const search = $('#searchPointTerminalsBtn');
+    const mpStatus = $('#mpIntegrationStatus');
+    if (!title || !description) return;
+    const dot = title.querySelector('.mp-oauth-dot');
 
-  if (oauthConnection) {
-    dot?.classList.add('connected');
-    title.lastChild.textContent = ' Mercado Pago conectado';
-    const ref = oauthConnection.account_reference ? `Conta ${oauthConnection.account_reference}` : 'Conta autorizada';
-    description.textContent = `${ref} • autorização segura via OAuth`;
-    connect?.classList.add('hidden');
-    disconnect?.classList.remove('hidden');
-    if (search) { search.disabled = false; search.title = ''; }
-    if (mpStatus && !document.querySelector('[data-provider-card="mercado_pago"] .payment-integration-badge')) mpStatus.textContent = 'Conta conectada • escolha sua Point';
-    return;
-  }
+    if (oauthConnection) {
+      dot?.classList.add('connected');
+      const ref = oauthConnection.account_reference ? `Conta ${oauthConnection.account_reference}` : 'Conta autorizada';
+      setText(title, `● Mercado Pago conectado`);
+      title.prepend(dot || document.createTextNode(''));
+      setText(description, `${ref} • autorização segura via OAuth`);
+      connect?.classList.add('hidden');
+      disconnect?.classList.remove('hidden');
+      if (search) { search.disabled = false; search.title = ''; }
+      setText(mpStatus, 'Conta conectada • escolha sua Point');
+      return;
+    }
 
-  dot?.classList.toggle('connected', currentRole === 'dono');
-  connect?.classList.remove('hidden');
-  disconnect?.classList.add('hidden');
-  if (currentRole === 'dono') {
-    title.lastChild.textContent = ' Conta Dono conectada';
-    description.textContent = 'A Conta Dono continua usando a credencial segura da plataforma. OAuth também pode ser usado para validar o fluxo dos clientes.';
-    connect.textContent = 'Conectar via OAuth';
-    if (search) { search.disabled = false; search.title = ''; }
-  } else {
-    title.lastChild.textContent = ' Mercado Pago não conectado';
-    description.textContent = 'Autorize sua própria conta uma única vez. Você não precisa copiar Access Token nem Client Secret.';
-    connect.textContent = 'Conectar Mercado Pago';
-    if (search) { search.disabled = true; search.title = 'Conecte sua conta Mercado Pago primeiro.'; }
-    if (mpStatus) mpStatus.textContent = 'Conecte sua conta para buscar sua Point';
+    dot?.classList.toggle('connected', currentRole === 'dono');
+    connect?.classList.remove('hidden');
+    disconnect?.classList.add('hidden');
+    if (currentRole === 'dono') {
+      setText(title, '● Conta Dono conectada');
+      setText(description, 'A Conta Dono continua usando a credencial segura da plataforma. OAuth também pode ser usado para validar o fluxo dos clientes.');
+      if (connect) connect.textContent = 'Conectar via OAuth';
+      if (search) { search.disabled = false; search.title = ''; }
+    } else {
+      setText(title, '● Mercado Pago não conectado');
+      setText(description, 'Autorize sua própria conta uma única vez. Você não precisa copiar Access Token nem Client Secret.');
+      if (connect) connect.textContent = 'Conectar Mercado Pago';
+      if (search) { search.disabled = true; search.title = 'Conecte sua conta Mercado Pago primeiro.'; }
+      setText(mpStatus, 'Conecte sua conta para buscar sua Point');
+    }
+  } finally {
+    rendering = false;
   }
 }
 
@@ -165,6 +178,8 @@ async function disconnectOauth() {
 }
 
 function bind() {
+  if (bound) return;
+  bound = true;
   document.addEventListener('click', event => {
     if (event.target.closest('#connectMercadoPagoOauthBtn')) void startOauth();
     if (event.target.closest('#disconnectMercadoPagoOauthBtn')) void disconnectOauth();
@@ -183,7 +198,10 @@ function bind() {
 
   const status = $('#mpIntegrationStatus');
   if (status && !statusObserver) {
-    statusObserver = new MutationObserver(() => setTimeout(render, 0));
+    statusObserver = new MutationObserver(() => {
+      if (rendering) return;
+      setTimeout(render, 0);
+    });
     statusObserver.observe(status, { childList: true, characterData: true, subtree: true });
   }
 }

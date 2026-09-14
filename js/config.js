@@ -14,7 +14,7 @@ if (!document.querySelector('link[data-renova-sidebar-fit]')) {
 }
 
 // Carrega o complemento de receita/despesa fixa por dia após a configuração base.
-queueMicrotask(() => import('./daily-fixed-module.js?v=20260914-2055').catch(error => console.warn('[RENOVA] Módulo de fluxos fixos não carregou.', error)));
+queueMicrotask(() => import('./daily-fixed-module.js?v=20260914-2110').catch(error => console.warn('[RENOVA] Módulo de fluxos fixos não carregou.', error)));
 
 // Carrega as integrações automáticas de recebimento sem expor tokens privados no frontend.
 queueMicrotask(() => import('./payment-integrations-module.js?v=20260914-2035').catch(error => console.warn('[RENOVA] Integrações de pagamento não carregaram.', error)));

@@ -72,7 +72,9 @@ Deno.serve(async(req)=>{
     }
     if(action==="setup_terminal"){
       const terminalId=String(body?.terminal_id||"");const operatingMode=String(body?.operating_mode||"PDV").toUpperCase();if(!terminalId)return reply({error:"terminal_id_required"},400);if(!["PDV","STANDALONE"].includes(operatingMode))return reply({error:"invalid_operating_mode"},400);
-      const {res,data}=await mp("/terminals/v1/setup",token,{method:"PATCH",body:JSON.stringify({terminals:[{id:terminalId,operating_mode:operatingMode}]})});if(!res.ok)return reply({error:"mercado_pago_error",message:mpErrorMessage(data,res.status),status:res.status,details:data},502);return reply({ok:true,data});
+      const {res,data}=await mp("/terminals/v1/setup",token,{method:"PATCH",body:JSON.stringify({terminals:[{id:terminalId,operating_mode:operatingMode}]})});if(!res.ok)return reply({error:"mercado_pago_error",message:mpErrorMessage(data,res.status),status:res.status,details:data},502);
+      const integrationStatus=operatingMode==="PDV"?"connected":"manual";const {data:terminal}=await admin.from("payment_terminals").update({integration_status:integrationStatus,updated_at:new Date().toISOString()}).eq("user_id",user.id).eq("provider","mercado_pago").eq("external_terminal_id",terminalId).select("id,name,provider,external_terminal_id,integration_mode,integration_status,is_active").maybeSingle();
+      return reply({ok:true,data,terminal,operating_mode:operatingMode});
     }
     if(action==="connect_terminal"){
       const externalId=String(body?.terminal_id||body?.external_terminal_id||"").trim();if(!externalId)return reply({error:"terminal_id_required"},400);

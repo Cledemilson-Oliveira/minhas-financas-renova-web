@@ -24,6 +24,9 @@ queueMicrotask(() => import('./point-pix-module.js?v=20260914-1225').catch(error
 // Corrige o contraste do modal/cartões de planos sem alterar o Checkout Mercado Pago.
 queueMicrotask(() => import('./plan-modal-contrast-fix.js?v=20260914-1400').catch(error => console.warn('[RENOVA] Correção de contraste dos planos não carregou.', error)));
 
+// Central de instruções: mostra ao usuário onde encontrar cada recurso e como usar o sistema.
+queueMicrotask(() => import('./help-center-module.js?v=20260914-1430').catch(error => console.warn('[RENOVA] Central de instruções não carregou.', error)));
+
 // Garante que a Conta Dono e demais usuários vejam apenas suas próprias contas/categorias
 // nos formulários financeiros, mesmo quando políticas administrativas permitem visão global.
 queueMicrotask(() => import('./user-financial-scope-fix.js?v=20260914-1045').catch(error => console.warn('[RENOVA] Isolamento financeiro do usuário não carregou.', error)));

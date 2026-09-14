@@ -237,6 +237,10 @@ async function ensurePublicSales(){
   });
 }
 
+// Carregamento direto da Central de Instruções como fallback do carregamento via config.js.
+// Isso evita que cache antigo do config ou re-render do menu impeça o botão Instruções de aparecer.
+queueMicrotask(()=>import('./help-center-module.js?v=20260914-1505').catch(error=>console.warn('[RENOVA] Central de instruções não carregou pelo fallback direto.',error)));
+
 ensureBrandAssetStyles();
 applyTheme(preferredTheme());
 if(document.readyState==='loading'){

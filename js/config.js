@@ -8,3 +8,7 @@ queueMicrotask(() => import('./daily-fixed-module.js').catch(error => console.wa
 
 // Carrega as integrações automáticas de recebimento sem expor tokens privados no frontend.
 queueMicrotask(() => import('./payment-integrations-module.js?v=20260914-1015').catch(error => console.warn('[RENOVA] Integrações de pagamento não carregaram.', error)));
+
+// Garante que a Conta Dono e demais usuários vejam apenas suas próprias contas/categorias
+// nos formulários financeiros, mesmo quando políticas administrativas permitem visão global.
+queueMicrotask(() => import('./user-financial-scope-fix.js?v=20260914-1045').catch(error => console.warn('[RENOVA] Isolamento financeiro do usuário não carregou.', error)));

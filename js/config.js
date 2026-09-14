@@ -9,6 +9,10 @@ queueMicrotask(() => import('./daily-fixed-module.js').catch(error => console.wa
 // Carrega as integrações automáticas de recebimento sem expor tokens privados no frontend.
 queueMicrotask(() => import('./payment-integrations-module.js?v=20260914-1015').catch(error => console.warn('[RENOVA] Integrações de pagamento não carregaram.', error)));
 
+// OAuth Mercado Pago multiusuário: cada vendedor autoriza a própria conta sem compartilhar
+// Access Token, Client Secret ou senha com o Minhas Finanças RENOVA.
+queueMicrotask(() => import('./mercado-pago-oauth-module.js?v=20260914-1305').catch(error => console.warn('[RENOVA] OAuth Mercado Pago não carregou.', error)));
+
 // Adiciona PIX integrado na Mercado Pago Point. O QR Code é exibido no terminal e a receita
 // só é conciliada após confirmação da order pelo Mercado Pago.
 queueMicrotask(() => import('./point-pix-module.js?v=20260914-1225').catch(error => console.warn('[RENOVA] PIX Point não carregou.', error)));

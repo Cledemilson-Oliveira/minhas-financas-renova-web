@@ -2,26 +2,26 @@
 
 Data de referência: **14/09/2026**
 
-Este documento registra o estado técnico do projeto para evitar retrabalho, perda de contexto e mistura com outros projetos.
+Este documento registra o estado técnico consolidado do projeto para evitar retrabalho, perda de contexto e mistura com outros projetos.
 
-## Identificação do projeto
+## Identificação
 
 - Projeto: **Minhas Finanças RENOVA Web**
 - Repositório: `Cledemilson-Oliveira/minhas-financas-renova-web`
 - Supabase: `renova-financas`
-- Supabase project ref: `ysxttnnkuyhzvkjheqfy`
-- Região Supabase: `sa-east-1`
+- Project ref: `ysxttnnkuyhzvkjheqfy`
+- Região: `sa-east-1`
 - Publicação/interface: NextGo + GitHub Pages
-- Domínio utilizado pelo projeto: `https://minhasfinancas.servicosgold.com.br/`
+- Domínio: `https://minhasfinancas.servicosgold.com.br/`
 
-> Este projeto é independente do **Ecossistema RENOVA**. Não misturar tabelas, código, credenciais ou deploys entre os dois projetos.
+> Este projeto é independente do **Ecossistema RENOVA**. Não misturar código, banco, credenciais, migrations ou deploys.
 
 ## Arquitetura oficial
 
 ```text
 NextGo
   ↓
-iframe / interface publicada
+iframe
   ↓
 GitHub Pages
   ↓
@@ -29,43 +29,42 @@ HTML + CSS + JavaScript
   ↓
 Supabase Auth + PostgreSQL + Edge Functions
   ↓
-Integrações externas autorizadas
+Mercado Pago / InfinitePay
 ```
 
-## Princípios de desenvolvimento
+## Regras permanentes
 
-- preservar o que já está funcionando;
+- preservar funcionalidades estáveis;
 - evitar retrabalho;
-- implementar soluções definitivas quando tecnicamente possível;
-- manter alto contraste e leitura fácil;
-- desktop e mobile devem ser responsivos;
-- lógica sensível sempre no backend;
-- nunca expor tokens privados no GitHub ou no navegador;
-- mudanças de banco devem ser versionadas em `supabase/migrations`;
-- Edge Functions publicadas no Supabase também devem existir no GitHub;
-- toda integração financeira deve ter rastreabilidade e idempotência quando disponível.
+- manter desktop/mobile responsivos;
+- manter alto contraste;
+- segredos somente no backend;
+- banco sempre versionado em migrations;
+- Edge Function publicada também deve existir no GitHub;
+- pagamento integrado nunca vira receita apenas porque a cobrança foi criada;
+- somente confirmação oficial do provedor pode consolidar a receita.
 
-## Entregas recentes consolidadas
+## Entregas consolidadas
 
-### Fluxos fixos por dia da semana
+### Receitas e despesas fixas por dia
 
-A estrutura de lançamentos recorrentes foi expandida para permitir receitas e despesas fixas semanais, atendendo casos como trabalho de segunda a sábado sem gerar domingo.
+O sistema suporta fluxos recorrentes por dias da semana, permitindo, por exemplo, segunda a sábado sem gerar domingo.
 
-Arquivos relacionados:
+Arquivos:
 
 - `supabase/migrations/20260913_weekly_fixed_schema.sql`
 - `supabase/migrations/20260913_weekly_fixed_functions.sql`
 
-### Multa, juros e encargos por atraso
+### Multa, juros e encargos
 
-Movimentações de despesa passaram a suportar:
+Despesas suportam:
 
-- multa percentual aplicada uma vez;
-- juros simples percentuais por dia de atraso;
-- encargo fixo em reais;
-- cálculo sobre contas vencidas sem alterar permanentemente o valor base.
+- multa percentual;
+- juros simples por dia;
+- encargo fixo;
+- vencimento.
 
-Migration:
+Arquivo:
 
 - `supabase/migrations/20260914_transaction_late_fees_and_charges.sql`
 
@@ -79,248 +78,258 @@ Receitas suportam:
 - Crédito
 - Outro
 
-Para cartão, o sistema registra:
+Cartão registra bruto, taxa, líquido e maquininha usada.
 
-- valor bruto;
-- percentual de taxa;
-- valor da taxa;
-- valor líquido;
-- maquininha usada.
-
-Migration:
+Arquivos:
 
 - `supabase/migrations/20260914_payment_methods_and_card_terminals.sql`
-
-Frontend:
-
 - `js/payments-module.js`
 - `css/payments-module.css`
 
-### Cadastro de maquininhas
+## Integrações de pagamento
 
-Foi criada `payment_terminals` com:
-
-- nome;
-- provedor;
-- ID/serial externo;
-- taxa de débito;
-- taxa de crédito;
-- status;
-- vínculo futuro/atual com integração.
-
-As taxas aplicadas ficam copiadas para a venda no momento do lançamento, evitando que uma alteração futura recalcule o histórico.
-
-## Fundação das integrações de pagamento
-
-Migration de produção registrada no Supabase:
-
-`payment_provider_integrations_foundation`
-
-Arquivo versionado no GitHub:
-
-- `supabase/migrations/20260914_payment_provider_integrations_foundation.sql`
-
-Foram criadas/expandidas as seguintes estruturas:
-
-### `payment_provider_connections`
-
-Gerencia a conexão de cada usuário com provedores de pagamento.
-
-### `payment_orders`
-
-Gerencia cobranças externas antes de elas serem conciliadas com `transactions`.
-
-### `payment_terminals`
-
-Recebeu:
-
-- `connection_id`
-- `integration_mode`
-
-## Escopo ativo de provedores
-
-Por decisão atual do projeto, trabalhar somente com:
+Escopo ativo atual:
 
 1. **Mercado Pago**
 2. **InfinitePay**
 
-Outros provedores não fazem parte da implementação ativa neste momento.
+### Fundação multi-provedor
+
+Migration aplicada:
+
+`payment_provider_integrations_foundation`
+
+Arquivo:
+
+- `supabase/migrations/20260914_payment_provider_integrations_foundation.sql`
+
+Estruturas:
+
+- `payment_provider_connections`
+- `payment_orders`
+- `payment_terminals.connection_id`
+- `payment_terminals.integration_mode`
+
+### Conciliação automática
+
+Migration aplicada:
+
+`payment_order_auto_reconciliation`
+
+Arquivo:
+
+- `supabase/migrations/20260914_payment_order_auto_reconciliation.sql`
+
+Trigger:
+
+`payment_orders_reconcile_processed`
+
+Regra:
+
+```text
+payment_order.status = processed
+      ↓
+valida conta/categoria
+      ↓
+calcula taxa da maquininha quando aplicável
+      ↓
+cria uma única transactions do tipo receita
+      ↓
+preenche payment_orders.transaction_id
+```
+
+A função `reconcile_processed_payment_order()` teve `EXECUTE` revogado de `anon` e `authenticated`.
 
 ## Mercado Pago Point
 
-Edge Function publicada:
+### Modelos previstos
 
-`mercado-pago-point`
-
-Código versionado:
-
-- `supabase/functions/mercado-pago-point/index.ts`
-
-Ações implementadas:
-
-- `list_terminals`
-- `setup_terminal`
-- `create_order`
-- `get_order`
-- `cancel_order`
-
-A integração usa a API moderna de **Orders** do Mercado Pago.
-
-Terminais documentados pelo Mercado Pago como integráveis ao PDV:
+Pela documentação atual do Mercado Pago:
 
 - Point Smart 1
 - Point Smart 2
 - Point Pro 2
 - Point Pro 3
 
-A Point Mini fica como operação manual/assistida até existir documentação oficial que permita o mesmo fluxo de integração via API Point/Orders.
+A **Point Mini** fica em operação manual/assistida; não tratá-la como terminal Point/Orders automatizado sem documentação oficial equivalente.
+
+### Backend
+
+Edge Function:
+
+- `mercado-pago-point`
+- arquivo: `supabase/functions/mercado-pago-point/index.ts`
+
+Ações implementadas:
+
+- `list_terminals`
+- `setup_terminal`
+- `connect_terminal`
+- `create_order`
+- `get_order`
+- `cancel_order`
+
+O backend resolve o terminal local do RENOVA antes de mandar a cobrança. Uma venda não pode informar livremente um terminal externo qualquer.
+
+### Webhook
+
+Edge Function:
+
+- `mercado-pago-point-webhook`
+- arquivo: `supabase/functions/mercado-pago-point-webhook/index.ts`
+
+URL:
+
+```text
+https://ysxttnnkuyhzvkjheqfy.supabase.co/functions/v1/mercado-pago-point-webhook
+```
+
+No Mercado Pago Developers deve ser configurado o evento **Order (Mercado Pago)**.
+
+O webhook valida assinatura, consulta `/v1/orders/{id}`, atualiza `payment_orders` e deixa o trigger fazer a conciliação.
 
 ### Segurança Mercado Pago
 
-O `MP_ACCESS_TOKEN` permanece apenas no backend.
+O token global continua restrito à **Conta Dono**.
 
-Enquanto OAuth individual não estiver implantado, a função Point está bloqueada para usuários comuns e aceita operação com o token global apenas para a **Conta Dono**.
-
-Próxima evolução obrigatória antes de liberar Point automática para clientes:
-
-- OAuth Mercado Pago por usuário.
+Usuários comuns recebem bloqueio até existir **OAuth Mercado Pago individual por usuário**.
 
 ## InfinitePay
 
-Foram preparadas duas Edge Functions.
+### Checkout
 
-### `infinitepay-checkout`
+Edge Function:
 
-Código:
+- `infinitepay-checkout`
+- arquivo: `supabase/functions/infinitepay-checkout/index.ts`
 
-- `supabase/functions/infinitepay-checkout/index.ts`
+Ações:
 
-Responsabilidades:
+- salvar InfiniteTag;
+- criar Checkout Integrado;
+- criar `payment_order`;
+- executar `payment_check`.
 
-- salvar a InfiniteTag;
-- criar checkout integrado;
-- criar `payment_order` correspondente;
-- consultar `payment_check`;
-- validar valor e confirmação do pagamento.
+### Webhook
 
-### `infinitepay-webhook`
+Edge Function:
 
-Código:
+- `infinitepay-webhook`
+- arquivo: `supabase/functions/infinitepay-webhook/index.ts`
 
-- `supabase/functions/infinitepay-webhook/index.ts`
+O webhook usa `payment_check` antes de considerar o pagamento aprovado e também valida o valor esperado.
 
-O webhook não confia apenas no payload recebido. Ele consulta a API `payment_check` da InfinitePay antes de mudar a order para `processed`.
+Quando a order vira `processed`, o trigger cria a receita automaticamente.
 
 ### InfiniteTap
 
-A modelagem foi preparada para `infinitepay_tap`, porém o fluxo completo ainda não deve ser ativado dentro do iframe web. A documentação oficial exige um `result_url` por deep link para retorno ao aplicativo de origem.
+A modelagem permanece preparada, mas o retorno automático do InfiniteTap depende de deep link/app compatível. Não simular esse comportamento no iframe web.
 
-Alternativas futuras:
+## Interface implementada
 
-- PWA com estratégia de link compatível;
-- wrapper mobile;
-- aplicativo nativo/híbrido RENOVA.
+Novo módulo:
 
-## Edge Functions do projeto relacionadas a pagamentos
+- `js/payment-integrations-module.js`
+- `css/payment-integrations-module.css`
 
-Além das integrações de maquininha, o projeto já possui funções relacionadas ao Mercado Pago para assinatura/checkout transparente.
+Carregamento:
 
-No momento deste registro, existem funções como:
+- `js/config.js`
+
+### Recebimentos → integrações
+
+Mercado Pago:
+
+- status;
+- **Buscar minhas Points**;
+- listar terminais encontrados;
+- **Vincular e ativar PDV**.
+
+InfinitePay:
+
+- campo InfiniteTag;
+- **Conectar InfinitePay**.
+
+### Nova receita
+
+Quando uma Point conectada é selecionada:
+
+- botão **Cobrar na Point**;
+- parcelas no crédito;
+- polling de status;
+- botão de cancelamento enquanto houver order ativa;
+- receita somente após aprovação.
+
+Quando a InfinitePay está conectada:
+
+- botão **Gerar checkout InfinitePay**;
+- criação do checkout;
+- webhook / payment_check;
+- conciliação automática.
+
+## Separação obrigatória
+
+### Assinatura RENOVA
+
+Pagamento que o usuário faz para contratar o aplicativo.
+
+### Recebimento do usuário
+
+Venda/serviço que o próprio usuário recebe de seus clientes.
+
+Esses fluxos não devem ser misturados.
+
+## Edge Functions de pagamento atuais
 
 - `mercado-pago-create-subscription`
 - `mercado-pago-webhook`
 - `mercado-pago-transparent-webhook`
 - `mercado-pago-transparent-checkout`
 - `mercado-pago-point`
+- `mercado-pago-point-webhook`
 - `infinitepay-checkout`
 - `infinitepay-webhook`
 
-Também existe a função financeira:
+Além delas:
 
 - `finance-ai`
 
-Não misturar a lógica de assinatura do aplicativo com as cobranças de vendas/recebimentos dos usuários.
-
-## Separação importante: assinatura x recebimento do usuário
-
-### Assinatura RENOVA
-
-É o pagamento que o cliente faz para ter acesso aos recursos/plano do Minhas Finanças RENOVA.
-
-### Recebimento financeiro do usuário
-
-É o dinheiro que o próprio usuário recebe de seus clientes por suas vendas/serviços.
-
-Esses dois fluxos devem usar tabelas e referências separadas para evitar que uma assinatura do aplicativo apareça como uma venda do usuário errado ou vice-versa.
-
-## Segurança do banco
-
-As novas tabelas utilizam RLS.
-
-Regras principais:
-
-- usuário só lê suas próprias conexões/orders;
-- usuário pode administrar suas próprias conexões;
-- `payment_orders` é escrita pelo backend;
-- `anon` não deve escrever nessas estruturas;
-- `service_role` é exclusivo do backend.
-
-## Próxima etapa recomendada
-
-### Interface de integrações
-
-Criar em **Movimentações → Recebimentos** um bloco de integrações com apenas:
-
-- Mercado Pago
-- InfinitePay
+## Próximo teste operacional
 
 ### Mercado Pago
 
-Implementar no frontend:
-
-1. “Buscar minhas maquininhas”;
-2. listar Point Smart/Pro retornadas pela API;
-3. selecionar terminal;
-4. ativar modo PDV;
-5. salvar `external_terminal_id`;
-6. botão “Cobrar na maquininha”;
-7. acompanhar estado da order;
-8. somente após confirmação, conciliar a receita.
+1. Abrir Mercado Pago Developers.
+2. Configurar o webhook Point com a URL registrada acima.
+3. Selecionar **Order (Mercado Pago)**.
+4. No RENOVA, abrir **Recebimentos**.
+5. Clicar **Buscar minhas Points**.
+6. Vincular uma Point Pro/Smart.
+7. Informar as taxas da maquininha.
+8. Criar uma receita de teste com valor baixo.
+9. Selecionar Crédito/Débito + Point.
+10. Usar **Cobrar na Point**.
+11. Confirmar pagamento.
+12. Verificar entrada automática no financeiro/dashboard.
 
 ### InfinitePay
 
-Implementar no frontend:
+1. Habilitar Checkout Integrado na conta InfinitePay.
+2. Informar a InfiniteTag no RENOVA.
+3. Criar receita de teste.
+4. Clicar **Gerar checkout InfinitePay**.
+5. Fazer o pagamento.
+6. Confirmar conciliação automática.
 
-1. campo InfiniteTag;
-2. botão “Conectar InfinitePay”;
-3. botão “Gerar checkout”;
-4. abrir checkout em experiência segura;
-5. acompanhar webhook/payment_check;
-6. conciliar a receita quando confirmada.
+## Segurança verificada nesta etapa
 
-### Conciliação automática
+- trigger de conciliação existe;
+- índices de unicidade existem;
+- `authenticated` não executa a função de trigger;
+- `anon` não executa a função de trigger.
 
-Criar rotina única para transformar uma `payment_order` processada em `transaction`, garantindo:
+O Security Advisor ainda aponta avisos anteriores em outras cinco funções `SECURITY DEFINER` e proteção contra senhas vazadas desativada. Esses pontos não foram criados pela integração atual e devem entrar em revisão separada.
 
-- idempotência;
-- não duplicar receita;
-- vínculo `payment_orders.transaction_id`;
-- valor bruto;
-- taxa;
-- líquido;
-- forma de pagamento;
-- conta financeira correta;
-- categoria escolhida.
-
-## Documentação técnica detalhada
-
-Consultar:
-
-- `docs/PAGAMENTOS_E_MAQUININHAS.md`
-
-## Código para publicação via NextGo
-
-A página publicada pela NextGo deve apontar para o GitHub Pages do projeto:
+## Código de publicação NextGo
 
 ```html
 <iframe
@@ -332,25 +341,23 @@ A página publicada pela NextGo deve apontar para o GitHub Pages do projeto:
 </iframe>
 ```
 
-## Regra de continuidade para próximos desenvolvimentos
+## Documentação detalhada
 
-Antes de alterar pagamentos:
+- `docs/PAGAMENTOS_E_MAQUININHAS.md`
+- `docs/REGISTRO_DESENVOLVIMENTO_2026-09-14.md`
 
-1. ler este documento;
-2. ler `docs/PAGAMENTOS_E_MAQUININHAS.md`;
-3. verificar migrations já aplicadas;
-4. verificar Edge Functions ativas;
-5. não criar uma segunda tabela para resolver algo que `payment_orders`, `payment_provider_connections` ou `payment_terminals` já resolvem;
-6. não colocar tokens em arquivos públicos;
-7. não marcar pagamento como aprovado sem confirmação do provedor;
-8. preservar compatibilidade desktop/mobile e NextGo iframe.
+## Commits principais da etapa de pagamentos
 
-## Commits desta etapa
-
-- `cc74530a2194f90164e812df342cdd505697d1d2` — fundação das integrações versionada.
-- `78b0d58140d64b0d4369ff1404a088ce100af6fb` — Mercado Pago Point versionado.
-- `789b7bd3d4311d89378f32236b64a362c48e9957` — backend InfinitePay Checkout.
+- `cc74530a2194f90164e812df342cdd505697d1d2` — fundação multi-provedor.
+- `78b0d58140d64b0d4369ff1404a088ce100af6fb` — Point inicial.
+- `789b7bd3d4311d89378f32236b64a362c48e9957` — InfinitePay Checkout.
 - `d14a6806c0b9dbaa50dbabe65d1e5a36779c2f2b` — webhook InfinitePay.
-- `77071a09bcc54132b7e6ac545c7fd59d2ffab14b` — documentação técnica de pagamentos.
+- `14ba2768d18c9cea1456513d3c2c9f4c0e507e66` — conciliação automática.
+- `840b7d9320f8937a57f7fbc2e93af906c65c4f3f` — Point integrada ao fluxo de cobrança.
+- `df7218ea8f28d42b20f64e45b3f1ad4a876b535b` — webhook Point Orders.
+- `20c386e521f2a43d8d7cadb88ae0dcecfc8be5b8` — interface das integrações.
+- `e94b6ef57b81c5691c9cb2dc8fab4f67562fc242` — estilos das integrações.
+- `3aaaec912e0bc9dd5c4578ab681b7f44650a3d08` — carregamento do módulo.
+- `502b08c8f43663c80fb23bda2e93ceab415b6d7b` — documentação técnica atualizada.
 
 Este arquivo deve ser atualizado sempre que a arquitetura de pagamentos sofrer mudança relevante.

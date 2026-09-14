@@ -13,6 +13,10 @@ queueMicrotask(() => import('./payment-integrations-module.js?v=20260914-1015').
 // Access Token, Client Secret ou senha com o Minhas Finanças RENOVA.
 queueMicrotask(() => import('./mercado-pago-oauth-module.js?v=20260914-1320').catch(error => console.warn('[RENOVA] OAuth Mercado Pago não carregou.', error)));
 
+// Fallback de rede para domínio customizado/iframe: abre a autorização fora do iframe e
+// repete a chamada uma vez em falhas transitórias de fetch, sem expor credenciais privadas.
+queueMicrotask(() => import('./mercado-pago-oauth-network-fix.js?v=20260914-1345').catch(error => console.warn('[RENOVA] Fallback OAuth Mercado Pago não carregou.', error)));
+
 // Adiciona PIX integrado na Mercado Pago Point. O QR Code é exibido no terminal e a receita
 // só é conciliada após confirmação da order pelo Mercado Pago.
 queueMicrotask(() => import('./point-pix-module.js?v=20260914-1225').catch(error => console.warn('[RENOVA] PIX Point não carregou.', error)));

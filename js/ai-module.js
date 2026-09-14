@@ -41,3 +41,4 @@ import('./checkout-module.js?v=20260913-0090').catch(error=>console.error('Falha
 import('./plans-admin-recovery.js?v=20260913-0090').catch(error=>console.error('Falha ao carregar recuperação de planos',error));
 import('./referral-benefits-module.js?v=20260913-0090').catch(error=>console.error('Falha ao carregar Indique e Evolua',error));
 import('./ai-owner-tools.js?v=20260913-0090').catch(error=>console.error('Falha ao carregar ferramentas de análise RENOVA',error));
+import('./openai-key-settings.js?v=20260914-2130').catch(error=>console.error('Falha ao carregar configuração da API OpenAI',error));

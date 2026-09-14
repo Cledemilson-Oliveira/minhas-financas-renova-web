@@ -34,6 +34,9 @@ queueMicrotask(() => import('./point-pix-module.js?v=20260914-1225').catch(error
 // Corrige o contraste do modal/cartões de planos sem alterar o Checkout Mercado Pago.
 queueMicrotask(() => import('./plan-modal-contrast-fix.js?v=20260914-1400').catch(error => console.warn('[RENOVA] Correção de contraste dos planos não carregou.', error)));
 
+// Corrige o contraste de Orçamentos no tema claro e força uma folha nova para evitar cache.
+queueMicrotask(() => import('./budget-contrast-fix.js?v=20260914-1455').catch(error => console.warn('[RENOVA] Correção de contraste de Orçamentos não carregou.', error)));
+
 // Central de instruções: mostra ao usuário onde encontrar cada recurso e como usar o sistema.
 queueMicrotask(() => import('./help-center-module.js?v=20260914-1505').catch(error => console.warn('[RENOVA] Central de instruções não carregou.', error)));
 

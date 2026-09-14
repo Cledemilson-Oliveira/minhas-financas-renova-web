@@ -6,7 +6,7 @@ const THEME_KEY='renova_theme_v2';
 const root=document.documentElement;
 const BRAND_LOGO='https://ysxttnnkuyhzvkjheqfy.supabase.co/storage/v1/object/public/renova-assets/LOGO';
 const DEVELOPER_IMAGE='https://ysxttnnkuyhzvkjheqfy.supabase.co/storage/v1/object/public/renova-assets/DESENVOLVEDOR%20DO%20SISTEMA';
-const ECOSSISTEMA_URL='https://ecossistemarenova.servicosgold.com.br';
+const DEVELOPER_PAGE_URL='https://cledemilson-oliveira.github.io/ecossistema-renova-web/desenvolvedor.html';
 const FALLBACK_LOGO='./assets/renova-brand.svg?v=20260913-0100';
 
 function ensureBrandAssetStyles(){
@@ -166,8 +166,8 @@ function ensureCard(){
         </div>
       </div>
 
-      <a class="renova-ecosystem-link" href="${ECOSSISTEMA_URL}" target="_blank" rel="noopener noreferrer" aria-label="Acessar site do Ecossistema RENOVA">
-        <span>↗</span><b>Acessar Ecossistema RENOVA</b>
+      <a class="renova-ecosystem-link" href="${DEVELOPER_PAGE_URL}" target="_blank" rel="noopener noreferrer" aria-label="Conhecer o desenvolvedor do Ecossistema RENOVA">
+        <span>↗</span><b>Conhecer o desenvolvedor</b>
       </a>
 
       <button id="renovaThemeToggle" class="renova-theme-toggle" type="button">

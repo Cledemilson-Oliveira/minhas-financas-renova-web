@@ -68,8 +68,10 @@ async function handleSignup(event) {
 async function handleForgotPassword() {
   const email = $('#loginEmail').value.trim();
   if (!email) return toast('Digite seu e-mail no campo de login primeiro.', 'error');
-  const resetUrl = new URL('/', location.origin);
-  resetUrl.searchParams.set('auth_action', 'reset-password');
+  // A página pública da NextGo encapsula o app em um iframe e não repassa o
+  // fragmento de recuperação. O callback precisa abrir diretamente no GitHub
+  // Pages, onde o token chega intacto ao formulário de nova senha.
+  const resetUrl = 'https://cledemilson-oliveira.github.io/minhas-financas-renova-web/reset-password.html';
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: resetUrl });
   if (error) return toast(error.message, 'error');
   toast('Enviamos as instruções de recuperação para seu e-mail.');

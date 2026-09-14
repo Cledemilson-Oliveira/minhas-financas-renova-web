@@ -1,11 +1,13 @@
 const money = new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'});
 const esc = (v='') => String(v).replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+const BRAND_LOGO='https://ysxttnnkuyhzvkjheqfy.supabase.co/storage/v1/object/public/renova-assets/LOGO';
+const FALLBACK_LOGO='./assets/renova-brand.svg?v=20260913-0100';
 
 function ensureCss(){
   if(document.querySelector('link[data-mf-public-sales]')) return;
   const link=document.createElement('link');
   link.rel='stylesheet';
-  link.href='./css/public-sales.css?v=20260913-0200';
+  link.href='./css/public-sales.css?v=20260913-0210';
   link.dataset.mfPublicSales='1';
   document.head.appendChild(link);
 }
@@ -35,9 +37,14 @@ function mount(){
   section.className='mf-public hidden';
   section.innerHTML=`
     <header class="mf-public-header">
-      <div class="mf-public-brand"><div class="mf-public-mark">R</div><div><strong>MINHAS FINANÇAS</strong><span>RENOVA • Gestão financeira inteligente</span></div></div>
+      <button class="mf-public-brand" data-scroll-top type="button" aria-label="Voltar ao início">
+        <img class="mf-public-logo" src="${BRAND_LOGO}" alt="Logo Minhas Finanças RENOVA">
+        <div><strong>MINHAS FINANÇAS</strong><span>RENOVA • Gestão financeira inteligente</span></div>
+      </button>
       <nav class="mf-public-nav" aria-label="Navegação da página pública">
-        <a href="#mfBenefits">Benefícios</a><a href="#mfPlans">Planos</a><a href="#mfReferral">Indique e Ganhe</a>
+        <a href="#mfBenefits" data-scroll-target="mfBenefits">Benefícios</a>
+        <a href="#mfPlans" data-scroll-target="mfPlans">Planos</a>
+        <a href="#mfReferral" data-scroll-target="mfReferral">Indique e Ganhe</a>
       </nav>
       <div class="mf-public-actions">
         <button class="mf-btn" data-public-login type="button">Já tenho conta</button>
@@ -45,12 +52,12 @@ function mount(){
       </div>
     </header>
     <main class="mf-public-main">
-      <section class="mf-hero">
+      <section class="mf-hero" id="mfTop">
         <div class="mf-hero-copy">
           <span class="mf-eyebrow">CONTROLE • CLAREZA • TEMPO DE QUALIDADE</span>
           <h1>Organize o dinheiro. <em>Recupere seu tempo.</em></h1>
           <p>O Minhas Finanças RENOVA transforma tarefas financeiras repetitivas em uma rotina simples e organizada, para você dedicar mais atenção à família, ao negócio e às decisões que realmente dependem de você.</p>
-          <div class="mf-hero-actions"><button class="mf-btn primary" data-public-signup type="button">Criar minha conta gratuita</button><button class="mf-btn" data-scroll-plans type="button">Conhecer os planos</button></div>
+          <div class="mf-hero-actions"><button class="mf-btn primary" data-public-signup type="button">Criar minha conta gratuita</button><button class="mf-btn" data-scroll-target="mfPlans" type="button">Conhecer os planos</button></div>
           <div class="mf-trust"><span>Comece gratuitamente</span><span>Desktop e mobile</span><span>Seus dados preservados</span><span>Evolua no seu ritmo</span></div>
         </div>
         <div class="mf-hero-demo" aria-label="Prévia conceitual do painel">
@@ -100,6 +107,8 @@ function mount(){
       <footer class="mf-public-footer"><span>© Minhas Finanças RENOVA • Ecossistema RENOVA</span><span>Organização • Clareza • Tempo de qualidade</span></footer>
     </main>`;
   document.body.prepend(section);
+  const logo=section.querySelector('.mf-public-logo');
+  logo?.addEventListener('error',()=>{if(logo.src!==new URL(FALLBACK_LOGO,location.href).href)logo.src=FALLBACK_LOGO},{once:true});
   return section;
 }
 
@@ -108,8 +117,16 @@ export function createPublicSales({supabase,onAuth}){
   const view=mount();
   let plans=[];
 
-  function show(){view.classList.remove('hidden');document.body.classList.add('public-sales-open');window.scrollTo({top:0,behavior:'instant'});}
+  function show(){view.classList.remove('hidden');document.body.classList.add('public-sales-open');view.scrollTo({top:0,behavior:'auto'});}
   function hide(){view.classList.add('hidden');document.body.classList.remove('public-sales-open');}
+
+  function scrollToSection(id){
+    const target=view.querySelector(`#${id}`);
+    if(!target)return;
+    const header=view.querySelector('.mf-public-header');
+    const top=target.getBoundingClientRect().top-view.getBoundingClientRect().top+view.scrollTop-(header?.offsetHeight||0)-12;
+    view.scrollTo({top:Math.max(0,top),behavior:'smooth'});
+  }
 
   function openAuth(mode='login',planCode=''){
     if(planCode) localStorage.setItem('renova_pending_plan',planCode);
@@ -141,7 +158,8 @@ export function createPublicSales({supabase,onAuth}){
 
   view.querySelectorAll('[data-public-login]').forEach(btn=>btn.addEventListener('click',()=>openAuth('login')));
   view.querySelectorAll('[data-public-signup]').forEach(btn=>btn.addEventListener('click',()=>openAuth('signup')));
-  view.querySelectorAll('[data-scroll-plans]').forEach(btn=>btn.addEventListener('click',()=>document.getElementById('mfPlans')?.scrollIntoView({behavior:'smooth'})));
+  view.querySelectorAll('[data-scroll-target]').forEach(el=>el.addEventListener('click',event=>{event.preventDefault();scrollToSection(el.dataset.scrollTarget)}));
+  view.querySelector('[data-scroll-top]')?.addEventListener('click',()=>view.scrollTo({top:0,behavior:'smooth'}));
   loadPlans();
 
   return {show,hide,loadPlans};

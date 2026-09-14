@@ -52,11 +52,11 @@ function lockManualSave(lock) {
 }
 
 async function invokePoint(body) {
-  const { data, error } = await supabase.functions.invoke('mercado-pago-point', { body });
+  const { data, error } = await supabase.functions.invoke('mercado-pago-point-pix', { body });
   if (error) {
     let detail = null;
     try { detail = error.context ? await error.context.json() : null; } catch (_) {}
-    throw new Error(detail?.message || detail?.error || error.message || 'Falha na integração com a Point.');
+    throw new Error(detail?.message || detail?.error || error.message || 'Falha na integração PIX com a Point.');
   }
   if (data?.error) throw new Error(data.message || data.error);
   return data;

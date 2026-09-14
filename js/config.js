@@ -17,6 +17,9 @@ queueMicrotask(() => import('./mercado-pago-oauth-bootstrap.js?v=20260914-1355')
 // só é conciliada após confirmação da order pelo Mercado Pago.
 queueMicrotask(() => import('./point-pix-module.js?v=20260914-1225').catch(error => console.warn('[RENOVA] PIX Point não carregou.', error)));
 
+// Corrige o contraste do modal/cartões de planos sem alterar o Checkout Mercado Pago.
+queueMicrotask(() => import('./plan-modal-contrast-fix.js?v=20260914-1400').catch(error => console.warn('[RENOVA] Correção de contraste dos planos não carregou.', error)));
+
 // Garante que a Conta Dono e demais usuários vejam apenas suas próprias contas/categorias
 // nos formulários financeiros, mesmo quando políticas administrativas permitem visão global.
 queueMicrotask(() => import('./user-financial-scope-fix.js?v=20260914-1045').catch(error => console.warn('[RENOVA] Isolamento financeiro do usuário não carregou.', error)));

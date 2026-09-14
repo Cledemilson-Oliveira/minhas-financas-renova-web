@@ -3,6 +3,16 @@
 export const SUPABASE_URL = 'https://ysxttnnkuyhzvkjheqfy.supabase.co';
 export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_ExcRQAHpToigI3WDwv3tew_ONpV9Xls';
 
+// Ajuste responsivo do menu lateral: mantém o botão Modo claro/escuro visível
+// mesmo em notebooks e janelas com pouca altura, sem cortar o rodapé do usuário.
+if (!document.querySelector('link[data-renova-sidebar-fit]')) {
+  const sidebarFit = document.createElement('link');
+  sidebarFit.rel = 'stylesheet';
+  sidebarFit.href = './css/sidebar-viewport-fix.css?v=20260914-1448';
+  sidebarFit.dataset.renovaSidebarFit = '1';
+  document.head.appendChild(sidebarFit);
+}
+
 // Carrega o complemento de receita/despesa fixa por dia após a configuração base.
 queueMicrotask(() => import('./daily-fixed-module.js').catch(error => console.warn('[RENOVA] Módulo de fluxo diário não carregou.', error)));
 
